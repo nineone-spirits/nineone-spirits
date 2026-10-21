@@ -93,6 +93,12 @@ python -c "import tkinter; print('ok')"
 
 ### Install
 
+**Option 0 — no Git, no command line**
+
+Download the ZIP from the [latest release](https://github.com/nineone-spirits/textgrabber/releases/latest)
+("Source code (zip)" at the bottom of the page), extract it anywhere, then double-click `install.bat`
+and `run.bat`. Git is not required. Python 3.10+ with tkinter still is.
+
 **Option 1 — one-click script (recommended)**
 
 ```bat

@@ -1,6 +1,6 @@
 @echo off
-REM 启动屏幕取字（无控制台窗口）
-REM 依次探测：项目内 .venv -> 上级 .venv -> PATH 上的 py -3
+REM Start TextGrabber without a console window.
+REM Probes: project .venv, then parent .venv, then py -3 on PATH.
 setlocal
 cd /d "%~dp0"
 
@@ -12,9 +12,9 @@ call :trypy
 if not errorlevel 1 exit /b 0
 
 echo.
-echo [x] 没有找到装好依赖的 Python 环境。
-echo     请先双击 install.bat 安装依赖（约 110 MB），再双击本文件。
-echo     想看具体报错，请在命令行执行：
+echo [x] No usable Python environment found.
+echo     Run install.bat first (about 110 MB of dependencies), then run this file again.
+echo     To see the actual error, open a terminal and run:
 echo         .venv\Scripts\python.exe run.py
 echo.
 pause

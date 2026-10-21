@@ -11,8 +11,8 @@
 *.json   text
 *.txt    text
 
-# Windows 批处理是 GBK 编码（控制台代码页 936），禁止任何字符集/换行重写，
-# 否则中文路径会失效。用 -text 而不是 binary，保留文本 diff 能力。
+# 批处理保持纯 ASCII + CRLF，禁止任何字符集/换行重写。
+# 用 -text 而不是 binary，保留文本 diff 能力。
 *.bat    -text
 *.cmd    -text
 

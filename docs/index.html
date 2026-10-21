@@ -120,12 +120,12 @@
       Nothing leaves the computer.
     </p>
     <div class="cta">
-      <a class="btn primary" href="https://github.com/nineone-spirits/textgrabber/releases/latest">Download v1.3.0 (source)</a>
+      <a class="btn primary" href="https://github.com/nineone-spirits/textgrabber/releases/download/v1.3.0/TextGrabber.exe">Download TextGrabber.exe</a>
       <a class="btn ghost" href="https://github.com/nineone-spirits/textgrabber">View on GitHub</a>
     </div>
     <p class="req">
-      Windows 10/11 · Python 3.10+ with tkinter · about 300 MB of disk.
-      <b>No Git needed</b>: download the ZIP, extract it, run <code class="inl">install.bat</code>, then <code class="inl">run.bat</code>.
+      Windows 10/11 · one 117 MB file · <b>no Python, no Git</b> — download and double-click.
+      Running from source instead? That path needs Python 3.10+ with tkinter.
     </p>
     <div class="meta">
       <span class="chip"><b>MIT</b> licensed</span>
@@ -205,8 +205,17 @@
   </div>
 
   <h2><span class="num">05</span>Install</h2>
-  <p class="sub">Windows 10/11, Python 3.10+ with tkinter, about 300 MB of disk. No GPU.</p>
-  <pre><span class="c">:: clone, install, run</span>
+  <p class="sub">Two ways in: a single exe with nothing to install, or from source if you prefer.</p>
+
+  <h3 style="font-size:16px;margin:22px 0 8px">Standalone exe</h3>
+  <ol class="steps">
+    <li><b>Download</b> <a href="https://github.com/nineone-spirits/textgrabber/releases/download/v1.3.0/TextGrabber.exe" style="color:var(--accent)">TextGrabber.exe</a> (117 MB).</li>
+    <li><b>Double-click</b> it. A blue OCR pill appears in the corner within a few seconds.</li>
+    <li><b>Press</b> <code class="inl">Ctrl+Alt+Q</code> and drag a box over any text.</li>
+  </ol>
+
+  <h3 style="font-size:16px;margin:26px 0 8px">From source</h3>
+  <pre><span class="c">:: needs Python 3.10+ with tkinter, about 300 MB of disk</span>
 git clone https://github.com/nineone-spirits/textgrabber.git
 cd textgrabber
 install.bat        <span class="c">:: creates .venv, installs ~110 MB of dependencies</span>

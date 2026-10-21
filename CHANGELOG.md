@@ -23,6 +23,8 @@ Nothing yet.
 - Subject toggle in the result window; the change panel states the criterion
   (`Subject red · 144px large · 5 boxes filtered`).
 - `python -m screengrab` and the `textgrabber` console entry point.
+- A standalone single-file `TextGrabber.exe` (117 MB) attached to the release, so end users need
+  neither Python nor Git. Build it yourself with `tools/build_exe.py`.
 
 ### Fixed
 

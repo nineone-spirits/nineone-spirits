@@ -93,11 +93,15 @@ python -c "import tkinter; print('ok')"
 
 ### Install
 
-**Option 0 — no Git, no command line**
+**Option 0 — the standalone exe (recommended for end users)**
 
-Download the ZIP from the [latest release](https://github.com/nineone-spirits/textgrabber/releases/latest)
-("Source code (zip)" at the bottom of the page), extract it anywhere, then double-click `install.bat`
-and `run.bat`. Git is not required. Python 3.10+ with tkinter still is.
+Download [TextGrabber.exe](https://github.com/nineone-spirits/textgrabber/releases/download/v1.3.0/TextGrabber.exe) (117 MB) from the latest release,
+put it anywhere and double-click it. **No Python, no Git, no dependencies.**
+
+The first launch takes 5–10 seconds while the bundle unpacks; after that it starts instantly.
+The exe is built from this source with `tools/build_exe.py`.
+
+Prefer running from source? Continue with Option 1 — that path needs Python 3.10+ with tkinter.
 
 **Option 1 — one-click script (recommended)**
 

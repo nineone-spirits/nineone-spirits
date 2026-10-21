@@ -93,11 +93,15 @@ python -c "import tkinter; print('ok')"
 
 ### 安装
 
-**方式零：不用 Git、不用命令行**
+**方式零：直接下载 exe（普通用户首选）**
 
-去 [最新 Release](https://github.com/nineone-spirits/textgrabber/releases/latest) 下载页面底部的
-「Source code (zip)」，解压到任意目录，然后双击 `install.bat`、再双击 `run.bat`。不需要 Git。
-仍然需要 Python 3.10+（带 tkinter）。
+去 [最新 Release](https://github.com/nineone-spirits/textgrabber/releases/latest) 下载 **`TextGrabber.exe`**（117 MB），放到任意目录，双击即可。
+**不需要 Python、不需要 Git、不需要装任何东西。**
+
+首次启动要 5–10 秒（把打包内容解压到临时目录），之后秒开。
+这个 exe 就是用本仓库的 `tools/build_exe.py` 打包出来的。
+
+想从源码跑，看下面的方式一——那条路需要 Python 3.10+（带 tkinter）。
 
 **方式一：一键脚本（推荐）**
 

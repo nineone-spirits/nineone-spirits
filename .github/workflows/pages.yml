@@ -8,27 +8,36 @@ on:
       - ".github/workflows/pages.yml"
   workflow_dispatch:
 
+# 用官方 Actions 部署（仓库 Pages 已设为 build_type=workflow），不再把 docs/ 推到 gh-pages。
+# 原因：用 GITHUB_TOKEN 推送的分支不会触发其它工作流，内置的 pages build and deployment
+# 收不到事件，网站会一直停在旧版本——上线时踩过这个坑。
 permissions:
-  contents: write
+  contents: read
+  pages: write
+  id-token: write
 
 concurrency:
   group: pages
   cancel-in-progress: true
 
 jobs:
-  publish:
+  deploy:
     name: 发布文档站点
     runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
 
-      # 站点由 gh-pages 分支提供（Pages 源就是它）。docs/ 一改就同步过去，
-      # 免得文档更新了网页还停在旧版本。
-      - name: 同步 docs 到 gh-pages
-        uses: peaceiris/actions-gh-pages@v4
+      - name: 配置 Pages
+        uses: actions/configure-pages@v5
+
+      - name: 打包 docs/
+        uses: actions/upload-pages-artifact@v3
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./docs
-          publish_branch: gh-pages
-          force_orphan: true
-          commit_message: "docs: publish from ${{ github.sha }}"
+          path: ./docs
+
+      - name: 部署
+        id: deploy
+        uses: actions/deploy-pages@v4

@@ -1,0 +1,13 @@
+# 运行依赖（Windows 10/11，Python 3.10+，无需 GPU）
+#
+# 权威来源是 pyproject.toml 的 [project.dependencies]，这里保持同一份清单，
+# 供「不安装成包、直接 python run.py」的场景使用。改依赖请两边一起改。
+rapidocr>=3.0                  # PP-OCRv6 检测+识别+方向分类，ONNX CPU 推理，模型随包分发
+onnxruntime>=1.16              # 推理后端：rapidocr 不带硬依赖，缺了会在初始化时 ImportError
+pillow>=10.0                   # 抓屏、裁剪、位图与 Tk 图像
+numpy>=1.24                    # 图像张量
+
+# 可选：追求更高精度（server 模型）时安装，程序会自动识别并优先使用
+# （等价于 pip install -e ".[paddle]"）
+# paddleocr>=2.7
+# paddlepaddle>=2.5

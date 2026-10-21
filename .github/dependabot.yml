@@ -1,0 +1,25 @@
+version: 2
+updates:
+  - package-ecosystem: pip
+    directory: "/"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 3
+    commit-message:
+      prefix: "chore"
+    labels:
+      - dependencies
+    # 只保护住会直接影响识别结果的大版本，其余交给评审
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
+        # rapidocr 的大版本可能换模型与接口，需要人工验证准确率
+      - dependency-name: rapidocr
+        update-types: ["version-update:semver-minor"]
+
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: monthly
+    commit-message:
+      prefix: "chore"

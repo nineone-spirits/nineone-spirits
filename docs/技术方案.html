@@ -1,0 +1,1146 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NineOne Spirits（九一的酒）· 屏幕取字 · 技术方案与实现说明</title>
+<style>
+  :root{
+    --ink:#111827; --ink2:#374151; --muted:#6B7280; --line:#E5E7EB;
+    --bg:#FFFFFF; --soft:#F9FAFB; --accent:#2563EB; --accent-soft:#EFF6FF;
+    --ok:#059669; --warn:#B45309; --warn-soft:#FFFBEB;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; background:#F3F4F6; color:var(--ink);
+    font-family:"Microsoft YaHei UI","PingFang SC","Segoe UI",system-ui,-apple-system,sans-serif;
+    font-size:15px; line-height:1.75; -webkit-font-smoothing:antialiased;
+  }
+  .page{max-width:960px;margin:0 auto;background:var(--bg);padding:56px 64px 72px;
+        box-shadow:0 1px 3px rgba(0,0,0,.06),0 12px 40px rgba(0,0,0,.06)}
+  @media (max-width:820px){ .page{padding:32px 22px} }
+
+  .kicker{font-size:12px;letter-spacing:.16em;color:var(--accent);font-weight:700;text-transform:uppercase}
+  h1{font-size:32px;line-height:1.3;margin:12px 0 10px;letter-spacing:-.4px}
+  .lead{font-size:16px;color:var(--ink2);margin:0 0 22px}
+  .meta{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:34px}
+  .chip{font-size:12.5px;color:var(--ink2);background:var(--soft);border:1px solid var(--line);
+        border-radius:999px;padding:4px 12px}
+
+  h2{font-size:21px;margin:52px 0 14px;padding-top:22px;border-top:1px solid var(--line);
+     letter-spacing:-.2px;scroll-margin-top:20px}
+  h2 .num{color:var(--accent);font-variant-numeric:tabular-nums;margin-right:10px;font-weight:800}
+  h3{font-size:16px;margin:26px 0 8px}
+  p{margin:10px 0}
+  ul,ol{margin:10px 0 10px;padding-left:22px}
+  li{margin:5px 0}
+  code{font-family:"Cascadia Mono",Consolas,"SF Mono",Menlo,monospace;font-size:13px;
+       background:#F3F4F6;border:1px solid #E9EBEF;border-radius:5px;padding:1px 5px;color:#0F172A}
+  pre{background:#0F172A;color:#E2E8F0;border-radius:10px;padding:16px 18px;overflow:auto;
+      font-family:"Cascadia Mono",Consolas,monospace;font-size:12.8px;line-height:1.6}
+  pre .c{color:#94A3B8}
+  pre .k{color:#93C5FD}
+  pre .s{color:#86EFAC}
+
+  table{width:100%;border-collapse:collapse;margin:16px 0;font-size:13.6px}
+  th,td{border:1px solid var(--line);padding:9px 12px;text-align:left;vertical-align:top}
+  th{background:var(--soft);font-weight:700;color:var(--ink2);white-space:nowrap}
+  tbody tr:nth-child(even){background:#FCFCFD}
+  td code{font-size:12.5px}
+  .num-cell{font-variant-numeric:tabular-nums;white-space:nowrap}
+
+  .box{border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin:18px 0;background:var(--soft)}
+  .box.accent{background:var(--accent-soft);border-color:#DBEAFE}
+  .box.warn{background:var(--warn-soft);border-color:#FDE68A}
+  .box h4{margin:0 0 8px;font-size:14px;letter-spacing:.02em;text-transform:uppercase;color:var(--ink2)}
+  .box p:last-child,.box ul:last-child{margin-bottom:0}
+
+  figure{margin:22px 0 8px}
+  figure img{width:100%;display:block;border:1px solid var(--line);border-radius:10px}
+  figcaption{font-size:12.8px;color:var(--muted);margin-top:8px;text-align:center}
+
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  @media (max-width:760px){ .grid2{grid-template-columns:1fr} }
+  .card{border:1px solid var(--line);border-radius:12px;padding:14px 16px;background:#fff}
+  .card .t{font-weight:700;font-size:14px;margin-bottom:4px}
+  .card .d{font-size:13px;color:var(--ink2)}
+
+  .steps{counter-reset:s;list-style:none;padding-left:0}
+  .steps>li{counter-increment:s;position:relative;padding-left:38px;margin:14px 0}
+  .steps>li::before{content:counter(s);position:absolute;left:0;top:1px;width:24px;height:24px;
+    border-radius:50%;background:var(--accent);color:#fff;font-size:12.5px;font-weight:700;
+    display:flex;align-items:center;justify-content:center}
+  .steps b{display:block}
+  .tag{display:inline-block;font-size:11.5px;padding:1px 7px;border-radius:5px;
+       background:var(--accent-soft);color:#1D4ED8;border:1px solid #DBEAFE;margin-left:6px;
+       vertical-align:1px;font-weight:600}
+  .tag.g{background:#ECFDF5;color:#047857;border-color:#D1FAE5}
+  .tag.r{background:#FEF2F2;color:#B91C1C;border-color:#FEE2E2}
+
+  .toc{display:grid;grid-template-columns:1fr 1fr;gap:6px 24px;font-size:13.6px;
+       border:1px solid var(--line);border-radius:12px;padding:16px 20px;background:var(--soft)}
+  @media (max-width:760px){ .toc{grid-template-columns:1fr} }
+  .toc a{color:var(--ink2);text-decoration:none;display:block;padding:2px 0}
+  .toc a:hover{color:var(--accent)}
+  .toc span{color:var(--accent);font-weight:700;margin-right:8px;font-variant-numeric:tabular-nums}
+  footer{margin-top:56px;padding-top:18px;border-top:1px solid var(--line);color:var(--muted);font-size:12.6px}
+  svg{max-width:100%;height:auto;display:block;margin:8px auto}
+  .svg-wrap{border:1px solid var(--line);border-radius:12px;padding:14px;background:#fff}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="kicker">Technical Design · v1.1</div>
+  <h1>NineOne Spirits（九一的酒）· 屏幕取字：技术方案与实现说明</h1>
+  <p class="lead">
+    在任意软件窗口、网页或 PDF 阅读器上，用一个全局热键框选屏幕任意区域，本地识别中英文混排文字，
+    结果可编辑、可一键复制，并保留标题层级、缩进、段间距与表格列对齐等基本格式。
+  </p>
+  <div class="meta">
+    <span class="chip">Windows 10 / 11 · x64</span>
+    <span class="chip">Python 3.13 + Tkinter</span>
+    <span class="chip">RapidOCR 3.x / PP-OCRv6（ONNX CPU）</span>
+    <span class="chip">纯离线，截图不出本机</span>
+    <span class="chip">约 3 950 行代码 / 15 个文件</span>
+  </div>
+
+  <div class="toc">
+    <a href="#s1"><span>01</span>产品形态决策：为什么不做浏览器插件</a>
+    <a href="#s2"><span>02</span>整体架构与数据流</a>
+    <a href="#s3"><span>03</span>跨应用调用的实现方式</a>
+    <a href="#s4"><span>04</span>识别能力的选型依据</a>
+    <a href="#s5"><span>05</span>准确率的五个保障手段</a>
+    <a href="#s6"><span>06</span>版面还原算法</a>
+    <a href="#s7"><span>07</span>复杂版面：网格、分栏与多字号</a>
+    <a href="#s8"><span>08</span>文本整理：从「认出来」到「读得通」</a>
+    <a href="#s9"><span>09</span>主体文字过滤：只给用户要的那一层</a>
+    <a href="#s10"><span>10</span>核心模块划分与主要依赖</a>
+    <a href="#s11"><span>11</span>关键交互流程</a>
+    <a href="#s12"><span>12</span>性能与资源实测</a>
+    <a href="#s13"><span>13</span>使用限制与已知风险</a>
+  </div>
+
+  <div class="box accent" style="margin-top:26px">
+    <h4>结论摘要</h4>
+    <ul>
+      <li><b>形态</b>：独立常驻小软件（不是浏览器插件）。插件只能覆盖网页，而需求是「任意软件界面」，只有系统级全局热键 + 桌面级抓屏才能满足。</li>
+      <li><b>识别</b>：本地 RapidOCR（PP-OCRv6）——中文混排精度接近云端 API，但不外传截图、无网络依赖、无需 GPU；实测一段中英混排界面截图平均置信度 99.2%。</li>
+      <li><b>体验</b>：热键按下到遮罩可交互 &lt; 100 ms（其中抓屏 13–19 ms），OCR 约 0.4 s 出结果；识别结果按原始版面还原（缩进 / 空行 / 制表符对齐），可编辑、可一键复制。</li>
+      <li><b>整理</b>：识别完成后自动跑一遍文本整理（约 10 ms）——合并被窗口截断的硬换行、统一中英文标点、清掉汉字之间的噪声空格、按标题/列表重新分块。每类改动都留痕，<b>一键可切回逐行原文</b>，并用内容骨架校验保证没增删实质内容。</li>
+      <li><b>复杂版面</b>：先判结构再拼字——桌面图标网格、参数表、分栏正文分别按网格/表格/整栏阅读顺序还原，「正文 + 表格」混排的页面也不会互相切碎；多字号页面按字号分层，标题不再被吸进正文。结构判定约 9 ms。</li>
+      <li><b>关键取舍</b>：为精度放弃了「无谓放大」，为隐私放弃了「云端大模型」，为稳定性放弃了「DLL 注入 / UI Automation 直取文本」。</li>
+    </ul>
+  </div>
+
+  <h2 id="s1"><span class="num">01</span>产品形态决策：为什么不做浏览器插件</h2>
+  <p>
+    需求里最关键的一句是「能在<strong>任意软件界面</strong>和网页中随时调用」。这一句直接排除了浏览器插件：
+    插件的运行边界是浏览器渲染进程，无法覆盖微信、Excel、钉钉、PDF 阅读器、远程桌面，也无法截取系统弹窗。
+    因此候选形态只剩「系统级常驻程序」。
+  </p>
+  <table>
+    <thead>
+      <tr><th style="width:150px">方案</th><th>覆盖范围</th><th>中文混排精度</th><th>实现/维护成本</th><th style="width:64px">结论</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>浏览器插件</td><td>仅网页 DOM / 渲染区域</td><td>中（多为云端接口或小型 wasm 模型）</td><td>低，但要为 Chrome/Edge/Firefox 分别上架</td><td>排除</td></tr>
+      <tr><td>输入法 / 系统自带截图 OCR</td><td>系统级，但交互固定</td><td>中</td><td>零</td><td>不可控</td></tr>
+      <tr><td>DLL 注入 / UI Automation 直接读控件文本</td><td>理论最全</td><td>100%（拿到的是原文）</td><td>极高，且被安全软件拦截、对 Electron / 画布渲染无效</td><td>排除</td></tr>
+      <tr><td><b>独立常驻程序 + 全局热键 + 桌面抓屏</b></td><td><b>任意前台窗口</b></td><td><b>高（本地 PP-OCRv6）</b></td><td><b>低</b></td><td><b>采用</b></td></tr>
+    </tbody>
+  </table>
+  <p>确定形态后，产品只剩三件事要解决：<b>怎么被唤起</b>、<b>怎么拿到像素</b>、<b>怎么把像素变成排版良好的文字</b>。后续章节即按此展开。</p>
+
+  <h2 id="s2"><span class="num">02</span>整体架构与数据流</h2>
+  <p>
+    分层很薄：最上面是交互层（悬浮球、遮罩、结果窗），中间是编排层（状态机 + 线程队列），
+    下面是能力层（抓屏、OCR、版面还原），最底是 Win32 适配层。能力层全部是纯函数或可替换实现，便于单测与换引擎。
+  </p>
+
+  <div class="svg-wrap">
+  <svg viewBox="0 0 880 400" xmlns="http://www.w3.org/2000/svg" font-family="Microsoft YaHei UI,Segoe UI,sans-serif">
+    <defs>
+      <marker id="ar" markerWidth="9" markerHeight="9" refX="7" refY="3.2" orient="auto">
+        <path d="M0,0 L7,3.2 L0,6.4 z" fill="#94A3B8"/>
+      </marker>
+    </defs>
+
+    <!-- 交互层 -->
+    <rect x="24" y="16" width="832" height="86" rx="10" fill="#EFF6FF" stroke="#DBEAFE"/>
+    <text x="42" y="40" font-size="12" font-weight="700" fill="#1D4ED8">交互层</text>
+    <rect x="42" y="50" width="150" height="38" rx="7" fill="#fff" stroke="#BFDBFE"/>
+    <text x="117" y="74" font-size="12.5" fill="#111827" text-anchor="middle">悬浮球 OCR</text>
+    <rect x="210" y="50" width="180" height="38" rx="7" fill="#fff" stroke="#BFDBFE"/>
+    <text x="300" y="74" font-size="12.5" fill="#111827" text-anchor="middle">框选遮罩 + 放大镜</text>
+    <rect x="408" y="50" width="200" height="38" rx="7" fill="#fff" stroke="#BFDBFE"/>
+    <text x="508" y="74" font-size="12.5" fill="#111827" text-anchor="middle">结果窗（可编辑/复制）</text>
+    <rect x="626" y="50" width="210" height="38" rx="7" fill="#fff" stroke="#BFDBFE"/>
+    <text x="731" y="74" font-size="12.5" fill="#111827" text-anchor="middle">Toast 轻提示</text>
+
+    <!-- 编排层 -->
+    <rect x="24" y="122" width="832" height="76" rx="10" fill="#F9FAFB" stroke="#E5E7EB"/>
+    <text x="42" y="146" font-size="12" font-weight="700" fill="#374151">编排层</text>
+    <rect x="42" y="156" width="300" height="32" rx="7" fill="#fff" stroke="#D1D5DB"/>
+    <text x="192" y="177" font-size="12.5" fill="#111827" text-anchor="middle">app.py 状态机（单实例 · 防重入）</text>
+    <rect x="360" y="156" width="240" height="32" rx="7" fill="#fff" stroke="#D1D5DB"/>
+    <text x="480" y="177" font-size="12.5" fill="#111827" text-anchor="middle">queue 跨线程回调</text>
+    <rect x="618" y="156" width="218" height="32" rx="7" fill="#fff" stroke="#D1D5DB"/>
+    <text x="727" y="177" font-size="12.5" fill="#111827" text-anchor="middle">config.json 持久化</text>
+
+    <!-- 能力层 -->
+    <rect x="24" y="218" width="832" height="86" rx="10" fill="#ECFDF5" stroke="#D1FAE5"/>
+    <text x="42" y="242" font-size="12" font-weight="700" fill="#047857">能力层</text>
+    <rect x="42" y="252" width="186" height="38" rx="7" fill="#fff" stroke="#A7F3D0"/>
+    <text x="135" y="276" font-size="12.5" fill="#111827" text-anchor="middle">capture 桌面抓图</text>
+    <rect x="246" y="252" width="186" height="38" rx="7" fill="#fff" stroke="#A7F3D0"/>
+    <text x="339" y="276" font-size="12.5" fill="#111827" text-anchor="middle">ocr 识别服务</text>
+    <rect x="450" y="252" width="186" height="38" rx="7" fill="#fff" stroke="#A7F3D0"/>
+    <text x="543" y="276" font-size="12.5" fill="#111827" text-anchor="middle">layout 版面还原</text>
+    <rect x="654" y="252" width="182" height="38" rx="7" fill="#fff" stroke="#A7F3D0"/>
+    <text x="745" y="276" font-size="12.5" fill="#111827" text-anchor="middle">pill / result 组件</text>
+
+    <!-- Win32 -->
+    <rect x="24" y="324" width="832" height="58" rx="10" fill="#0F172A" stroke="#0F172A"/>
+    <text x="42" y="348" font-size="12" font-weight="700" fill="#93C5FD">Win32 适配层</text>
+    <text x="42" y="369" font-size="12" fill="#CBD5E1">RegisterHotKey · SetWindowPos · EnumDisplayMonitors · GetCursorPos · DPI_AWARENESS · CF_UNICODETEXT 剪贴板 · 命名互斥体</text>
+
+    <line x1="440" y1="102" x2="440" y2="118" stroke="#94A3B8" stroke-width="1.4" marker-end="url(#ar)"/>
+    <line x1="440" y1="198" x2="440" y2="214" stroke="#94A3B8" stroke-width="1.4" marker-end="url(#ar)"/>
+    <line x1="440" y1="304" x2="440" y2="320" stroke="#94A3B8" stroke-width="1.4" marker-end="url(#ar)"/>
+    <text x="452" y="115" font-size="11" fill="#6B7280">调用</text>
+    <text x="452" y="211" font-size="11" fill="#6B7280">编排</text>
+    <text x="452" y="317" font-size="11" fill="#6B7280">封装</text>
+  </svg>
+  </div>
+
+  <p>一次识别的数据流是单向的，没有回环，也就没有状态同步问题：</p>
+  <pre><span class="c"># 单向数据流</span>
+热键/悬浮球 → 隐藏自身 → 抓整个虚拟桌面(PIL Image) → 逐屏建遮罩(1:1 像素)
+   → 框选得到全局矩形 → 裁剪 → 预处理(反色/通道) → OCR → TextItem[]
+   → 版面还原 → 字符串 → 结果窗(可编辑) → 剪贴板</pre>
+
+  <h2 id="s3"><span class="num">03</span>跨应用调用的实现方式</h2>
+  <p>「跨应用」意味着我们的程序永远不是前台窗口，因此不能用常规的窗口消息或焦点模型，必须依赖系统级机制。逐项说明关键实现与踩过的坑。</p>
+
+  <h3>3.1 全局热键：RegisterHotKey，而不是键盘钩子</h3>
+  <pre><span class="c"># screengrab/hotkey.py</span>
+<span class="k">user32</span>.RegisterHotKey(None, hotkey_id, MOD_CONTROL | MOD_ALT | MOD_NOREPEAT, VK_Q)</pre>
+  <ul>
+    <li>注册在独立线程里跑自己的消息循环（<code>GetMessageW</code>），命中后投递回调，不阻塞 UI 线程。</li>
+    <li>不用 <code>SetWindowsHookEx</code> 低级键盘钩子：钩子是全局的，会被安全软件判定为键盘记录器行为，而且拖慢整机输入延迟。</li>
+    <li><code>MOD_NOREPEAT</code> 避免长按连续触发；注册失败（被其它软件占用）会记录并在启动时用 Toast 明确提示，而不是让用户以为程序没启动。</li>
+    <li>限制：<code>RegisterHotKey</code> 要求组合里至少有一个 <code>Ctrl/Alt/Shift/Win</code>，所以无法实现「单键唤起」——这是可接受的产品约束。</li>
+  </ul>
+
+  <h3>3.2 悬浮球：热键之外的第二个入口</h3>
+  <p>
+    无边框置顶窗口（<code>overrideredirect</code> + <code>SWP_SHOWWINDOW</code>），用 Canvas 画圆角胶囊；
+    按下与拖动都用 <code>GetCursorPos</code> 判断位移，&gt;5px 视为拖动并持久化位置，否则视为点击。
+    它解决三个现实问题：热键被占用、用户记不住组合键、触屏/远程桌面下没有顺畅键盘。
+  </p>
+
+  <h3>3.3 抓屏：一次性抓整个虚拟桌面</h3>
+  <p>
+    <code>ImageGrab.grab(all_screens=True)</code> 抓的是「所有显示器拼成的虚拟桌面」，其左上角原点正是
+    <code>SM_XVIRTUALSCREEN / SM_YVIRTUALSCREEN</code>。因此后续所有坐标换算只有一次平移，不存在逐屏拼接的接缝问题。
+  </p>
+  <p><b>抓屏前必须隐藏自己</b>：先把悬浮球与结果窗 <code>withdraw()</code>，等一帧再抓，否则自己的窗口会被拍进底图，出现在遮罩里非常突兀。</p>
+
+  <h3>3.4 高 DPI：所有坐标错误的根源</h3>
+  <div class="box warn">
+    <h4>务必在创建任何窗口之前调用</h4>
+    <p><code>SetProcessDpiAwarenessContext(PER_MONITOR_AWARE_V2)</code>。不做声明时，Windows 会对进程做位图拉伸：125% 缩放下框选坐标整体偏移 25%、截图发虚，识别率明显下降。</p>
+  </div>
+  <p>声明之后，Win32 坐标、PIL 抓屏像素、Tk 画布坐标三者统一为「物理像素」，可以 1:1 互相换算。</p>
+
+  <h3>3.5 多显示器与负坐标</h3>
+  <ul>
+    <li><code>EnumDisplayMonitors</code> 枚举每块屏的物理矩形，<b>每个屏建一个遮罩窗口</b>，各铺本屏截图 1:1 渲染 —— 混合 DPI 下也不会出现某块屏被拉伸模糊。</li>
+    <li>Tk 的 <code>geometry("+-1920+0")</code> 会把负值解释成「距右边缘的距离」，副屏在主屏左侧时窗口会跑到错误位置。因此摆放窗口统一走 <code>SetWindowPos(hwnd, HWND_TOPMOST, x, y, w, h, ...)</code>。</li>
+    <li>拖拽跨越两块屏时，各屏只绘制「全局矩形与本屏的交集」，选区被自然裁剪。</li>
+  </ul>
+
+  <h3>3.6 坐标取值：GetCursorPos，而不是 Tk 的 event.x_root</h3>
+  <p>
+    <code>overrideredirect</code> + <code>SetWindowPos</code> 之后，Tk 内部记录的窗口位置可能与实际不一致，
+    导致 <code>event.x_root</code> 失真。所有指针坐标一律走 <code>GetCursorPos()</code> 取物理像素，Tk 事件只当触发器用。
+  </p>
+
+  <h3>3.7 其它两处细节</h3>
+  <ul>
+    <li><b>单实例</b>：命名互斥体（<code>CreateMutexW("Global\TextGrabber.SingleInstance")</code>），防止重复启动后两个进程争抢同一个热键，后启动者只弹提示后退出。</li>
+    <li><b>剪贴板</b>：直接写 <code>CF_UNICODETEXT</code>，不依赖 Tk 的剪贴板所有权，程序退出后内容仍在。注意 64 位下 <code>HGLOBAL</code> 必须声明 <code>restype/argtypes</code>，否则句柄被按 32 位截断，<code>GlobalLock</code> 返回 NULL 直接访问违例（开发中真实踩到）。</li>
+  </ul>
+
+  <h2 id="s4"><span class="num">04</span>识别能力的选型依据</h2>
+  <p>约束条件排序：<b>中文+英文混排准确率 &gt; 隐私（离线）&gt; 响应速度 &gt; 部署体积 &gt; 可扩展性</b>。按此评估五个候选：</p>
+  <table>
+    <thead>
+      <tr><th style="width:186px">候选引擎</th><th>中英混排</th><th>西文空格/标点</th><th>单张耗时</th><th>部署体积</th><th>离线</th><th style="width:70px">结论</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Windows.Media.Ocr</td><td>中上</td><td>一般</td><td>极低（&lt;50 ms）</td><td>系统自带</td><td>是</td><td>备选</td></tr>
+      <tr><td>Tesseract 5</td><td>中</td><td>差</td><td>低</td><td>小</td><td>是</td><td>排除</td></tr>
+      <tr><td>PaddleOCR server</td><td>高</td><td>好</td><td>高</td><td>数百 MB（Paddle 框架）</td><td>是</td><td>可选</td></tr>
+      <tr><td>云端 OCR API</td><td>很高</td><td>很好</td><td>网络 RTT</td><td>0</td><td>否</td><td>排除</td></tr>
+      <tr><td><b>RapidOCR 3.x / PP-OCRv6 small（ONNX）</b></td><td><b>高</b></td><td><b>好</b></td><td><b>0.37–0.41 s</b></td><td><b>80 MB</b></td><td><b>是</b></td><td><b>采用</b></td></tr>
+    </tbody>
+  </table>
+
+  <div class="box">
+    <h4>决定性证据：西文空格是否保留</h4>
+    <p>同一张中英混排界面截图，在两个版本的 PP-OCR 模型下：</p>
+    <pre><span class="c"># PP-OCRv3 mobile（rapidocr-onnxruntime 1.2.3）</span>
+Revenuegrew18.6%QoQdrivenbyoverseasexpansion.      <span class="c">← 空格与逗号全部丢失</span>
+
+<span class="c"># PP-OCRv6 small（rapidocr 3.10）</span>
+Revenue grew 18.6% QoQ, driven by overseas expansion.   <span class="c">← 完整保留</span></pre>
+    <p>「识别准确率」对这类工具不只是字对字，<b>单词边界丢失等于结果不可用</b>。这一条直接把旧版 mobile 模型排除，最终选定 PP-OCRv6 small。</p>
+  </div>
+
+  <h3>为什么不用云端 API</h3>
+  <p>
+    截图里可能有聊天记录、客户名单、财务数据。把屏幕内容上传到第三方服务器，是这类工具最不该做的取舍；
+    同时云端还有配额、计费、断网不可用、响应抖动等问题。本地 0.4 s 已足够快，没有理由换隐私。
+  </p>
+
+  <h3>可插拔后端</h3>
+  <p>
+    <code>OcrEngine</code> 只定义一件事：<code>run(np.ndarray) -&gt; [(quad, text, score)]</code>。
+    目前实现三个（<code>RapidOcrEngine</code> / <code>LegacyRapidOcrEngine</code> / <code>PaddleOcrEngine</code>），
+    按可用性自动降级。日后想换更高精度的 server 模型或接入其它引擎，上层 <code>OcrService</code>、版面还原、UI 全都不用改。
+  </p>
+
+  <h2 id="s5"><span class="num">05</span>准确率的五个保障手段</h2>
+  <p>准确率不是「选个大模型」就完事。屏幕文本有一批特有陷阱，逐条给出机制与实测依据。</p>
+
+  <ol class="steps">
+    <li>
+      <b>高 DPI 感知 <span class="tag r">必做</span></b>
+      未声明 DPI 感知时，系统位图拉伸会让文字边缘发虚、坐标偏移，识别率与框选精度同时崩。见 3.4。
+    </li>
+    <li>
+      <b>深色界面自动反色</b>
+      PP-OCR 的识别模型按「浅底深字」训练。暗色主题（终端、VS Code、深色网页）上的浅色文字直接喂进去会明显掉点。
+      做法：取灰度中位数作为背景亮度代理，<code>&lt; 110</code> 判定为深色并整体反色，把输入拉回训练分布。
+      实测深色界面平均置信度 98.6%，与浅色基本持平。
+    </li>
+    <li>
+      <b>通道顺序 BGR</b>
+      库的 <code>ndarray</code> 入参按 OpenCV 习惯解释为 BGR。PIL 出来的是 RGB，必须先
+      <code>[:, :, ::-1]</code>。传错不会报错，只会让彩色文字与细笔画的识别率悄悄下降 —— 属于典型的「静默精度损失」。
+    </li>
+    <li>
+      <b>不做无谓缩放 <span class="tag">实测结论</span></b>
+      常见经验是「小字放大再识别更准」。但在 PP-OCRv6 上实测恰好相反：
+      <table style="margin-top:8px">
+        <thead><tr><th>原生 9–10px 小字</th><th>平均置信度</th><th>相对耗时</th></tr></thead>
+        <tbody>
+          <tr><td>1.0× 原图</td><td class="num-cell"><b>97.8%</b></td><td class="num-cell">1.0×</td></tr>
+          <tr><td>2.2× 放大</td><td class="num-cell">97.6%</td><td class="num-cell">≈1.0×</td></tr>
+          <tr><td>3.0× 放大</td><td class="num-cell">97.0%</td><td class="num-cell">≈1.0×</td></tr>
+        </tbody>
+      </table>
+      所以默认 1:1 送入，只对超长边（&gt;4000px 的极端选区）做等比缩略。少一次预处理，快且更准。
+    </li>
+    <li>
+      <b>置信度过滤 + 质量可见</b>
+      低于 0.5 的框直接丢弃（多半是图标、分隔线、装饰性噪点）；同时统计 <code>&lt;0.85</code> 的框数量与整体平均置信度，
+      展示在结果窗标题栏（「13 行 · 284 字 · 置信度 99% · 0.51s」）。用户一眼能判断这次要不要重框，而不是盲目信任。
+    </li>
+  </ol>
+
+  <div class="box accent">
+    <h4>实测：一份中英混排产品报告截图</h4>
+    <p>760 × 430 px，含标题、英文摘要、三级列表、4 列 3 行表格、脚注（含日期与邮箱）。</p>
+    <ul>
+      <li>识别 12 行 / 284 字，<b>平均置信度 99.2%</b>，耗时 0.51 s；</li>
+      <li>金额 <code>¥3,482万</code>、百分比 <code>+21.4%</code>、日期 <code>2026-09-30</code>、邮箱 <code>ops@example.com</code> 全部逐字符正确；</li>
+      <li>表格四列在输出中被还原为制表符分隔，粘贴进 Excel 可直接成列。</li>
+    </ul>
+  </div>
+
+  <h2 id="s6"><span class="num">06</span>版面还原算法</h2>
+  <p>
+    OCR 只给出一堆「四点框 + 文本 + 置信度」。直接按行拼接会丢掉缩进、段间距和表格列 —— 那只是「一堆字」，
+    不是「保留基本格式的文字」。因此单独做了一个纯函数模块 <code>layout.py</code>（无 IO、无 UI，可单测），四步：
+  </p>
+
+  <ol class="steps">
+    <li><b>行聚类</b>：按垂直重叠率把框分到同一行，容忍轻微倾斜与同行字号不一致。
+      判据 <code>overlap / min(h₁,h₂) ≥ 0.45</code>；同组内按 x 排序。</li>
+    <li><b>行内拼接</b>：间距决定分隔符，这是中英文差异的核心。
+      <pre style="margin:8px 0"><span class="c"># 阈值同时参考字宽与行高，避免字号混排时误判</span>
+tab_gap   = max(字宽 × 1.8, 行高 × 1.35)   <span class="c">→ 跨列，输出 \t</span>
+space_gap = 字宽 × 0.45                    <span class="c">→ 输出一个空格</span>
+中文 ←→ 中文                                <span class="c">→ 不加空格（中文排版无词间空格）</span></pre>
+    </li>
+    <li><b>段落切分</b>：行距 <code>&gt; 1.35 × 行高</code> 视为段间距，输出空行；
+      「智能合段」模式下，行距 <code>≤ 0.55 × 行高</code> 且左边界差 <code>&lt; 1.6 × 字宽</code> 的连续行合并为一段（中文直连、西文补空格）。</li>
+    <li><b>缩进还原</b>：<code>round((x₀ − 块左边界) / 行内字宽)</code> 折算成前导空格（上限 8），保留列表缩进、
+      首行缩进的观感；含制表符的行（表格行）不做缩进，避免列错位。</li>
+  </ol>
+
+  <p>效果对比（同一段 OCR 结果，两种输出模式）：</p>
+  <div class="grid2">
+    <div class="card">
+      <div class="t">逐行模式 <span class="tag g">默认</span></div>
+      <div class="d">最贴合原始排版，适合代码、表单、表格、条款。缩进与空行原样保留。</div>
+      <pre style="margin:10px 0 0;font-size:12px">一、核心结论
+  1. 华东区域营收 ¥3,482 万元
+  2. 客单价提升至 ¥286
+
+渠道	GMV	同比
+天猫旗舰店	1,284.5	+21.4%</pre>
+    </div>
+    <div class="card">
+      <div class="t">智能合段</div>
+      <div class="d">连续的行按语义合并成段落，适合散文、新闻、报告正文。</div>
+      <pre style="margin:10px 0 0;font-size:12px">一、核心结论 1. 华东区域营收
+¥3,482 万元 2. 客单价提升至
+¥286，复购率 41.2%</pre>
+    </div>
+  </div>
+  <p style="font-size:13.4px;color:var(--muted)">
+    两种模式在结果窗右上角一键切换，<b>只重新拼版、不重跑 OCR</b>，所以来回对比是零成本的。
+  </p>
+
+  <h3 id="s6-4">6.4 显示层：只纵向滚动，永不横向溢出</h3>
+  <p>结果窗的文本框用 <code>wrap="word"</code>。Tk 8.6 在这个模式下遇到超长无空格串（URL、base64、连续英文标识符）或连续中文时，会退化为按字符断行——实测 260 字符的 URL 折成 7 行、200 个连续汉字折成 10 行，<b>都不产生横向溢出</b>。所以结果窗不提供横向滚动条，任何长度的内容都能完整看到。</p>
+  <p>窗口尺寸与字号一起按系统 DPI 放大（<code>winfo_fpixels("1i") / 96</code>），布局断点用逻辑像素判断：≥620 显示完整质量摘要，≥600 显示快捷键提示，&lt;480 时底栏四个按钮自动排成 2×2，避免被挤成一条细缝。这三个档位都有回归断言覆盖（<code>tests/test_result_wrap.py</code>：横向可视范围必须为 0~1、按钮不得被压缩或溢出窗口）。</p>
+
+  <h2 id="s7"><span class="num">07</span>复杂版面：网格、分栏与多字号</h2>
+  <p>
+    「行聚类 + 行内拼接」隐含一个假设：整页是一栏连续文字。而实际框选对象里，桌面图标网格、
+    卡片列表、参数表、报表截图占了一大半——它们都不满足这个假设。这一章记录这类版面为什么读错、
+    影响范围有多大，以及现在的判定与还原方式。
+  </p>
+
+  <h3>7.1 症状：一张桌面图标截图，修复前后</h3>
+  <p>
+    同一张 593×1006 的桌面截图（4 列 × 9 行的图标网格，标签有中英文、有折行、字号一致），
+    识别置信度 99%，但整理稿在修复前是这样的：
+  </p>
+  <div class="grid2">
+    <div class="card">
+      <div class="t">修复前 <span class="tag r">结构错乱</span></div>
+      <div class="d">同一行的四个图标名被拼成一句话；第二个图标的第二行标签跑到了下一个图标前面。</div>
+      <pre style="margin:10px 0 0;font-size:12px">此电脑剪映专业版百度网盘	豆包
+Plain Craft ToDesk	实践	DeepSeek
+Launche...	Harness
+
+W
+
+Steam	Microsoft qwen_rag 软件结构.
+Edge	xoop
+
+回收站 Radmin VPN 316组 WorkBuddy
+控制面板网易云音乐腾讯会议屏幕取字</pre>
+    </div>
+    <div class="card">
+      <div class="t">修复后 <span class="tag g">9 行 × 4 列</span></div>
+      <div class="d">每个图标的标签回到自己的单元格，制表符对齐列位；折行的标签在单元内接回。</div>
+      <pre style="margin:10px 0 0;font-size:12px">此电脑	剪映专业版	百度网盘	豆包
+Plain Craft Launche...	ToDesk	实践	DeepSeek Harness
+Steam	Microsoft Edge	qwen_rag	软件结构.xoop
+回收站	Radmin VPN	316组	WorkBuddy
+控制面板	网易云音乐	腾讯会议	屏幕取字
+微信	Google Chrome	Slay the Spire 2
+Honeyview	联想超级文件	明日方舟
+QQ	鹰角启动器	三角洲行动
+图吧工具箱	316组.zip	SakuraFrp 启动器</pre>
+    </div>
+  </div>
+  <p>三类错误，每一类都能在几何上找到确定的原因，不是「模型认不准」：</p>
+  <table style="margin-top:8px">
+    <thead><tr><th style="width:26%">症状</th><th style="width:30%">原文应读成</th><th>成因</th></tr></thead>
+    <tbody>
+      <tr><td><code>此电脑剪映专业版百度网盘</code></td><td>四个独立单元格</td><td>行内「间距 → 分隔符」阈值在网格上摇摆（见 7.2 根因一）</td></tr>
+      <tr><td><code>W</code> 独占一段</td><td>属于「软件结构.docx」这个图标</td><td>图标 Logo 被识别成字母，且没有单元概念（见 7.4）</td></tr>
+      <tr><td><code>Microsoft</code> 与 <code>Edge</code> 分开、<code>Honeyview 联想超级文件</code> 粘连</td><td>前者是一个标签折行，后者是两个标签</td><td>缺少「单元」与「跨列框切分」（见 7.4）</td></tr>
+    </tbody>
+  </table>
+
+  <h3>7.2 三个根因</h3>
+  <ol class="steps">
+    <li>
+      <b>根因一：行内间距阈值在网格上摇摆</b><br>
+      第 1 行四个标签的字宽中位数 17.1px、行高 19.5px，于是
+      <code>tab_gap = max(17.1×1.8, 19.5×1.35) = 30.8px</code>；而实测三个列间缝分别是
+      <b>29 / 22 / 43px</b>。29 和 22 小于阈值 → 直接相连，43 大于阈值 → 出一个制表符，
+      于是同一行里出现了两种判法。这不是阈值没调好：22~43px 正好落在「词间距」与「列间距」
+      之间，任何单一阈值都会在别处翻车。<b>间距本身不携带「这里是列」的信息</b>，
+      必须从整页的列结构反推。
+    </li>
+    <li>
+      <b>根因二：全局列模型会切碎正文</b><br>
+      一页上下结构不同时（上半段是条款、下半段是「姓名｜部门」表单），表格会向全页投出列边界，
+      正文行也被按这些边界切开，上下两行被并进同一个「单元格」，读出来是：
+      <code>第一条 为规范管理第二条 本办法适用于全体员工。</code>
+      影响范围不止表格页——凡「正文 + 表格」「标题 + 多列卡片」的截图都会中招，而且切碎的正文
+      看起来仍然通顺，用户很难一眼发现内容被串了。
+    </li>
+    <li>
+      <b>根因三：没有字号层级</b><br>
+      标题（32px）、小标题（20px）、正文（14px）、注释（10px）在文本层没有任何标记。
+      整理阶段只能按「字符数」判断该不该合并，于是标题被吸进正文第一行、注释被粘到段尾；
+      多字号混排的界面（设置页、报表、海报式落地页）几乎必然出错。
+    </li>
+  </ol>
+
+  <h3>7.3 结构判定：列候选 → 逐行签名 → 区块</h3>
+  <p>新增 <code>structure.py</code>（纯函数，9 ms/15 框），把「行」升维成「区块」：</p>
+  <ol class="steps">
+    <li><b>列候选</b>：收集各行内部 <code>≥0.9 × 行高</code> 的空隙，按<b>区间是否重叠</b>聚类。
+      用区间重叠而不是中点距离：图标名居中排列、长短不一，同一条列间缝在不同行会漂移十几像素
+      （实测 83~98px），固定容差会把一条边界拆成两条，列数就多出一列。</li>
+    <li><b>逐行签名</b>：每一行只认「落在自己空隙里」的列边界。正文行里边界通常落在某个框<b>内部</b>
+      （那句话横跨了表格列的投影位置），签名为空 → 这一行不会被切。表格行、图标行的空隙正好
+      套住边界 → 签名非空。这是根因二的解法。</li>
+    <li><b>区块</b>：签名相同的连续行合成一条带；带两端各放宽 1.2 倍字高，把贴着网格的折行标签
+      （只有一行、天然没有列结构）吸进来。带内走网格/分栏，带外走单栏正文，区块之间按纵向
+      间距补空行。同一页可以同时存在「正文块 + 表格块」。</li>
+    <li><b>定性</b>：单元格平均字数 <code>≤22</code> → 网格（逐行输出、制表符对齐列）；
+      否则 → 分栏（整栏读完再换栏，报纸式阅读顺序）。另有一条自检：若某个单元横跨
+      <code>≥75%</code> 版心且合并了多行，说明列模型不成立（正文被切碎时的典型形态），
+      整块退回单栏。</li>
+  </ol>
+
+  <h3>7.4 单元还原：折行、跨列、徽标</h3>
+  <table>
+    <thead><tr><th style="width:20%">问题</th><th style="width:32%">判据</th><th>处理</th></tr></thead>
+    <tbody>
+      <tr>
+        <td>标签折行</td>
+        <td>同一列内，相邻两框的纵向间距 <code>≤ 0.6 × 行高</code></td>
+        <td>并成一个单元，按「中文直连 / 西文补空格」接回：<code>Microsoft</code> + <code>Edge</code> →
+          <code>Microsoft Edge</code>；<code>软件结构.</code> + <code>docx</code> → <code>软件结构.docx</code></td>
+      </tr>
+      <tr>
+        <td>紧密表格<br>（行距极小）</td>
+        <td>纵向间距 <code>≤ 0.6 × 行高</code>，但这一行<b>占满了整块的列数</b></td>
+        <td>判为表格换行，<b>不并单元</b>。折行标签所在的行只占 2 列（全块常见 4 列），表格行则列列有框；
+          用「每行占几列」的众数区分两者，否则 <code>姓名/张三</code>、<code>部门/研发</code>
+          会被各并成一个单元，两行表格塌成 <code>姓名张三&nbsp;部门研发</code>。
+          单字母徽标（<code>W</code>）不受这条约束，否则它会独占一行</td>
+      </tr>
+      <tr>
+        <td>跨列框<br>（OCR 吞并）</td>
+        <td>框的 x 范围横跨列边界</td>
+        <td>按位置比例算切点，再就近吸附到<b>空格</b>（±18% 内），两侧都 ≥2 字才动手。
+          实测 <code>Honeyview 联想超级文件</code> 是一个 240px 宽的框，切成
+          <code>Honeyview</code> / <code>联想超级文件</code>；而
+          <code>316组.zip SakuraFrp 启</code> 在最右边界会切出 1 个字的尾片，因此不切，
+          整段归它中心所在的列（保持 <code>SakuraFrp 启动器</code> 完整）</td>
+      </tr>
+      <tr>
+        <td>图标徽标</td>
+        <td>单个 ASCII 字母数字；或 2~4 个大写字母且宽度 <code>&lt; 35%</code> 单元宽</td>
+        <td>判为图标角标（Word 的 <code>W</code>、压缩包的 <code>ZIP</code>），从整理稿移除；
+          <b>原文视图仍保留</b>，明细里记一条「忽略图标/徽标字符 ×2：W、ZIP」</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>7.5 多字号：分层与隔离</h3>
+  <p>
+    框高 ≈ 字高，所以字号可以从几何上反推：把全页框高排序后按 <b>18% 递增</b>聚类
+    （同段正文波动 &lt;5%，标题通常是正文的 1.4~2.4 倍，注释小一号），得到 2~4 层。
+    层级随后贯穿两处：
+  </p>
+  <table style="margin-top:8px">
+    <thead><tr><th style="width:24%">用途</th><th style="width:34%">判据</th><th>效果</th></tr></thead>
+    <tbody>
+      <tr><td>标题识别</td><td>行高 <code>≥ 正文层 × 1.18</code> 且整行 ≤60 字</td>
+        <td>标题前后各补一个空行，自成一段；<code>一、为什么不用云端大模型</code> 不会和正文第一行连成一句</td></tr>
+      <tr><td>跨层不合并</td><td>相邻两行的字号层相差 ≥1 层</td>
+        <td>正文段尾的注释（10px）不会被粘进正文；返回顶格的小标题也不会被上一段吞掉</td></tr>
+      <tr><td>层级播报</td><td>最大层 <code>≥ 最小层 × 1.3</code> 才显示</td>
+        <td>标题栏出现「· 3 级字号」；识别框高本身有 10%~20% 波动，不加这条阈值会天天误报</td></tr>
+    </tbody>
+  </table>
+  <p style="font-size:13.4px;color:var(--muted)">
+    字体家族、字重、颜色无法从 OCR 结果中得到——引擎只返回四点框、文本和置信度。
+    因此「同一字号下的粗体」与常规体在文本层不可区分，能还原的是<b>相对字号层级</b>与
+    <b>对齐关系</b>，不是字体样式本身。这是纯文本输出的固有限制，不是实现取舍。
+  </p>
+
+  <h3>7.6 呈现与实测</h3>
+  <figure>
+    <img src="img/grid.png" alt="图标网格的整理结果：9 行 × 4 列，列位对齐">
+    <figcaption>
+      结果窗：标题栏显示「15 行 · 228 字 · <b>网格 9 行 × 4 列</b> · 置信度 99% · 1.60s」。
+      列位对齐不是靠空格凑的——制表位按<b>实际列宽</b>定制：用当前字体逐列量出最宽单元格，
+      累加成停靠位置。Tk 默认制表位按「平均字符宽」算，中文是方字，默认值会让第二列紧贴第一列。
+    </figcaption>
+  </figure>
+  <figure>
+    <img src="img/grid-details.png" alt="整理明细：结构摘要、相似度、徽标剔除记录">
+    <figcaption>
+      展开「整理明细」：首行给出结构判定（网格 9 行 × 4 列）、内容相似度与保真结论；
+      下面逐条列出改动。这张图里正文<b>一处未改</b>（相似度 100%），唯一的改动是把
+      <code>W</code>、<code>ZIP</code> 两个图标角标移出正文——删了什么也写在明面上。
+    </figcaption>
+  </figure>
+  <table style="margin-top:8px">
+    <thead><tr><th style="width:38%">指标</th><th style="width:24%">结果</th><th>说明</th></tr></thead>
+    <tbody>
+      <tr><td>结构判定 + 单元还原</td><td class="num-cell">9.0 ms</td><td>15 个文本框，含 3 次列聚类与 2 处跨列切分</td></tr>
+      <tr><td>列位还原准确率</td><td class="num-cell">36 / 36 单元</td><td>9 行 × 4 列全部归位，含 2 处折行、1 处跨列框、2 个徽标</td></tr>
+      <tr><td>整理对正文的改动</td><td class="num-cell">0 处</td><td>相似度 100.0%，保真等级 ok</td></tr>
+      <tr><td>回归用例</td><td class="num-cell">52 项断言</td><td><code>test_structure.py</code>（36）+ <code>test_grid_e2e.py</code>（16，真实截图）</td></tr>
+    </tbody>
+  </table>
+
+  <h3>7.7 边界与代价</h3>
+  <ul>
+    <li><b>整行被吞成一个框</b>：OCR 检测阶段把多个单元格连成一个框时，只能按比例 + 就近空格切；
+      纯中文没有空格可吸附，就不切——宁可整段留在首列，也不制造错字碎片。</li>
+    <li><b>合并单元格 / 跨行表头</b>：没有表格结构模型，只按「列位」还原，不还原 colspan/rowspan。</li>
+    <li><b>列数上限 8</b>：超过按前 8 列处理，更多列的密集表格会退化成「列位大致对齐」的文本。</li>
+    <li><b>行距极小的表格</b>：表格行距小于半个字高时，几何上与「标签折行」无法区分，
+      只能靠「这一行是否占满列数」的统计规律判断。两列宽的密集表格如果每行都折行，
+      规律失灵，会把折行拆成新行。</li>
+    <li><b>分栏 vs 网格的判断</b>：以单元格平均字数（22 字）为界。极短的分栏正文（如诗歌、对话）
+      会被当成网格逐行输出——两者在几何上确实无法区分，此时逐行反而更好读。</li>
+  </ul>
+
+  <h2 id="s8"><span class="num">08</span>文本整理：从「认出来」到「读得通」</h2>
+  <p>
+    版面还原之后拿到的是「屏幕上的行」：一段话被窗口宽度切成三四行，汉字之间夹着 OCR 噪声空格，
+    半角标点混在全角里，双引号是直引号。这些都不是识别错误，而是「没有整理」——直接复制出去，
+    还得手工删换行、补标点、改引号。所以链路末尾加了一步纯文本整理（<code>tidy.py</code>，
+    同样无 IO / 无 UI / 无网络），在结果窗打开之前完成。
+  </p>
+
+  <div class="box accent">
+    <h4>这一步的边界</h4>
+    <p>只动「形」，不动「意」：调字符形态、标点、空白、段落结构。除高置信纠错规则外不增、不删、不改写任何实质内容。
+    整理前后做一次<b>内容骨架校验</b>，每类改动写入 ChangeLog，界面上随时可查、可一键切回原文。</p>
+  </div>
+
+  <h3>7.1 触发时机</h3>
+  <p>识别完成即自动执行，不需要用户点任何按钮：</p>
+  <table>
+    <thead><tr><th style="width:200px">时机</th><th>行为</th><th style="width:210px">代价</th></tr></thead>
+    <tbody>
+      <tr><td>OCR 完成、结果窗弹出前</td><td>在 OCR 工作线程内串行执行，与识别结果同一批投回主线程，UI 不额外等待一次线程切换</td><td class="num-cell">+9～12 ms</td></tr>
+      <tr><td>重新识别 / 再次框选</td><td>对新结果重新整理</td><td>同上</td></tr>
+      <tr><td>切换「逐行 / 合段」</td><td><b>不重跑整理</b>：整理吃的是逐行结果，与排版模式无关，只重算原文</td><td class="num-cell">≈ 0 ms</td></tr>
+      <tr><td>整理过程抛异常</td><td>捕获后降级为直接展示原文，不阻塞主流程</td><td>—</td></tr>
+      <tr><td>用户关闭开关</td><td>悬浮球右键「自动整理识别结果」可关；关后只显示逐行原文，视图切换控件一并隐藏</td><td>—</td></tr>
+    </tbody>
+  </table>
+  <p>之所以敢放在主链路里同步做，是因为它是纯字符串处理：实测 8000 字 ≈ 11 ms、2000 字 ≈ 4 ms，相对 OCR 的 380 ms 完全可以忽略。</p>
+
+  <h3>7.2 六步流水线</h3>
+  <div class="svg-wrap">
+  <svg viewBox="0 0 880 168" xmlns="http://www.w3.org/2000/svg" font-family="Microsoft YaHei UI,Segoe UI,sans-serif">
+    <defs>
+      <marker id="tidyAr" markerWidth="8" markerHeight="8" refX="6.4" refY="3" orient="auto">
+        <path d="M0,0 L6.4,3 L0,6 z" fill="#94A3B8"/>
+      </marker>
+    </defs>
+    <text x="8" y="16" font-size="11.5" fill="#6B7280">输入 · layout.py 的逐行文本（缩进、空行、制表符都还在）</text>
+
+    <g>
+      <rect x="8" y="28" width="132" height="68" rx="9" fill="#FFFFFF" stroke="#DBEAFE"/>
+      <circle cx="24" cy="46" r="8" fill="#2563EB"/>
+      <text x="24" y="49.5" font-size="10" font-weight="700" fill="#FFFFFF" text-anchor="middle">1</text>
+      <text x="38" y="50" font-size="11.5" font-weight="700" fill="#111827">字符归一</text>
+      <text x="18" y="70" font-size="10" fill="#6B7280">全角字母数字→半角</text>
+      <text x="18" y="84" font-size="10" fill="#6B7280">清零宽字符 / 软连字符</text>
+    </g>
+    <g>
+      <rect x="154" y="28" width="132" height="68" rx="9" fill="#FFFFFF" stroke="#DBEAFE"/>
+      <circle cx="170" cy="46" r="8" fill="#2563EB"/>
+      <text x="170" y="49.5" font-size="10" font-weight="700" fill="#FFFFFF" text-anchor="middle">2</text>
+      <text x="184" y="50" font-size="11.5" font-weight="700" fill="#111827">标点统一</text>
+      <text x="164" y="70" font-size="10" fill="#6B7280">中文语境转全角</text>
+      <text x="164" y="84" font-size="10" fill="#6B7280">省略号 / 重复标点折叠</text>
+    </g>
+    <g>
+      <rect x="300" y="28" width="132" height="68" rx="9" fill="#FFFFFF" stroke="#DBEAFE"/>
+      <circle cx="316" cy="46" r="8" fill="#2563EB"/>
+      <text x="316" y="49.5" font-size="10" font-weight="700" fill="#FFFFFF" text-anchor="middle">3</text>
+      <text x="330" y="50" font-size="11.5" font-weight="700" fill="#111827">空格清理</text>
+      <text x="310" y="70" font-size="10" fill="#6B7280">中文之间的空格删除</text>
+      <text x="310" y="84" font-size="10" fill="#6B7280">中英之间留 1 格</text>
+    </g>
+    <g>
+      <rect x="446" y="28" width="132" height="68" rx="9" fill="#EFF6FF" stroke="#BFDBFE"/>
+      <circle cx="462" cy="46" r="8" fill="#1D4ED8"/>
+      <text x="462" y="49.5" font-size="10" font-weight="700" fill="#FFFFFF" text-anchor="middle">4</text>
+      <text x="476" y="50" font-size="11.5" font-weight="700" fill="#1D4ED8">断行重排</text>
+      <text x="456" y="70" font-size="10" fill="#1E40AF">满行才判为截断</text>
+      <text x="456" y="84" font-size="10" fill="#1E40AF">中文直连、英文断词还原</text>
+    </g>
+    <g>
+      <rect x="592" y="28" width="132" height="68" rx="9" fill="#FFFFFF" stroke="#DBEAFE"/>
+      <circle cx="608" cy="46" r="8" fill="#2563EB"/>
+      <text x="608" y="49.5" font-size="10" font-weight="700" fill="#FFFFFF" text-anchor="middle">5</text>
+      <text x="622" y="50" font-size="11.5" font-weight="700" fill="#111827">段落重组</text>
+      <text x="602" y="70" font-size="10" fill="#6B7280">标题 / 列表 / 缩进分块</text>
+      <text x="602" y="84" font-size="10" fill="#6B7280">段间空行，表格不合并</text>
+    </g>
+    <g>
+      <rect x="738" y="28" width="132" height="68" rx="9" fill="#FFFFFF" stroke="#DBEAFE"/>
+      <circle cx="754" cy="46" r="8" fill="#2563EB"/>
+      <text x="754" y="49.5" font-size="10" font-weight="700" fill="#FFFFFF" text-anchor="middle">6</text>
+      <text x="768" y="50" font-size="11.5" font-weight="700" fill="#111827">保守纠错</text>
+      <text x="748" y="70" font-size="10" fill="#6B7280">重复字 / 数字串混淆</text>
+      <text x="748" y="84" font-size="10" fill="#6B7280">24 条高置信错别字</text>
+    </g>
+
+    <g stroke="#94A3B8" stroke-width="1.2" fill="none">
+      <line x1="140" y1="62" x2="150" y2="62" marker-end="url(#tidyAr)"/>
+      <line x1="286" y1="62" x2="296" y2="62" marker-end="url(#tidyAr)"/>
+      <line x1="432" y1="62" x2="442" y2="62" marker-end="url(#tidyAr)"/>
+      <line x1="578" y1="62" x2="588" y2="62" marker-end="url(#tidyAr)"/>
+      <line x1="724" y1="62" x2="734" y2="62" marker-end="url(#tidyAr)"/>
+    </g>
+
+    <text x="8" y="122" font-size="11.5" fill="#6B7280">输出 · 段落化文本 + ChangeLog（每类改动的计数与 before / after 样例）</text>
+    <g font-size="10.5">
+      <rect x="8" y="132" width="128" height="24" rx="12" fill="#ECFDF5" stroke="#D1FAE5"/>
+      <text x="72" y="148" fill="#047857" text-anchor="middle">内容骨架校验</text>
+      <rect x="146" y="132" width="128" height="24" rx="12" fill="#EFF6FF" stroke="#DBEAFE"/>
+      <text x="210" y="148" fill="#1D4ED8" text-anchor="middle">原文随时可切回</text>
+      <rect x="284" y="132" width="128" height="24" rx="12" fill="#F9FAFB" stroke="#E5E7EB"/>
+      <text x="348" y="148" fill="#374151" text-anchor="middle">9～12 ms</text>
+    </g>
+  </svg>
+  </div>
+
+  <table>
+    <thead><tr><th style="width:104px">步骤</th><th style="width:300px">做什么</th><th>关键判据与取舍</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><b>字符归一</b></td>
+        <td>全角 <code>０-９ Ａ-Ｚ ａ-ｚ ％＋＝</code> → 半角；清零宽字符、软连字符、BOM。</td>
+        <td>只转「本该是 ASCII」的码位。全角逗号、句号、括号本身就是中文标点，<b>绝不能转</b>。没有整段套 NFKC，正是因为它会把全角括号也一并转掉。</td>
+      </tr>
+      <tr>
+        <td><b>标点统一</b></td>
+        <td><code>, ; : ! ?</code> → <code>，；：！？</code>；含中文的括号与直引号转全角；<code>。。。</code> → <code>……</code>；重复标点折叠。</td>
+        <td>行内汉字 ≥2 才算中文语境。数字之间的 <code>, . :</code> 与 <code>://</code> 一律不动，所以 <code>1,000</code>、<code>3.14</code>、<code>12:30</code>、URL 全部原样保留。</td>
+      </tr>
+      <tr>
+        <td><b>空格清理</b></td>
+        <td>汉字之间、汉字与全角标点之间、括号内侧的空格删除；连续空格折叠为一个。</td>
+        <td>中英之间保留 1 个空格（<code>使用 Python</code>），这是正确的中英混排，不强行贴合。</td>
+      </tr>
+      <tr>
+        <td><b>断行重排</b></td>
+        <td>判断这一行的换行是「排版截断」还是「真的分段」，前者与下一行合并。</td>
+        <td>满行宽取非空行长度的 75 分位；上一行不足 72% 满行宽即判为段尾。详见 7.3。</td>
+      </tr>
+      <tr>
+        <td><b>段落重组</b></td>
+        <td>段落之间留一个空行；列表项之间用单换行保持紧凑；表格行逐行输出。</td>
+        <td>含制表符的行永远不参与合并——一旦合段，表格结构就彻底毁了。单段上限 1200 字，防止误判把整篇吞成一段。</td>
+      </tr>
+      <tr>
+        <td><b>保守纠错</b></td>
+        <td>重复虚词折叠（<code>的的</code>→<code>的</code>）；数字串里 <code>O→0</code>、<code>l/I→1</code>；24 条高置信错别字（<code>己经→已经</code>、<code>帐号→账号</code> 等）。</td>
+        <td>只收「有唯一正确写法」的搭配。形近字（未/末、己/已、土/士）与语法改写一律不做，理由见 7.4。</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p style="font-size:13.4px;color:var(--muted)">
+    六步都是<b>线性、保序</b>的：不重排句子顺序，也不跨行搬移内容。「重组」指的是把被排版截断的同一段重新接起来、
+    把本该分开的段落分开——阅读顺序永远是原文从上到下的顺序。这一步也不做双栏还原（那是版面还原层的事），
+    双栏页面建议按栏分别框选。
+  </p>
+
+  <h3>7.3 断行合并：整条链路里最容易出错的一步</h3>
+  <p>
+    合并的依据不能只看「行尾有没有标点」。PDF 和窄栏网页里，一行常常正好在逗号处被截断，
+    只看标点会把完整的一段切成五六段。真正可靠的信号是<b>这一行有没有写满</b>：
+  </p>
+  <pre style="margin:12px 0"><span class="c"># 满行宽 = 非空、非表格行长度的 75 分位（被截断的行一定接近满行）</span>
+full_width = percentile([len(l) <span class="k">for</span> l <span class="k">in</span> lines <span class="k">if</span> l <span class="k">and</span> <span class="s">"\t"</span> <span class="k">not in</span> l], 0.75)
+
+<span class="k">def</span> should_break(prev, cur):
+    <span class="k">if</span> <span class="s">"\t"</span> <span class="k">in</span> prev <span class="k">or</span> <span class="s">"\t"</span> <span class="k">in</span> cur:      <span class="k">return True</span>   <span class="c"># 表格行永远独占</span>
+    <span class="k">if</span> LIST_RE.match(cur):                <span class="k">return True</span>   <span class="c"># 列表 / 编号另起一段</span>
+    <span class="k">if</span> cur.indent &gt; prev.indent:          <span class="k">return True</span>   <span class="c"># 缩进加深 = 新段首行</span>
+    <span class="k">if</span> ends_sentence(prev):               <span class="k">return True</span>   <span class="c"># 上一行已经收句</span>
+    <span class="k">if</span> len(prev) &lt; full_width * 0.72:      <span class="k">return True</span>   <span class="c"># 明显没写满 = 段尾</span>
+    <span class="k">return False</span>                                     <span class="c"># 其余视为硬换行，接上</span></pre>
+  <p>合并时的连接规则单独处理，避免把断行变成多余空格或粘连：</p>
+  <table>
+    <thead><tr><th style="width:280px">情形</th><th style="width:120px">连接符</th><th>例子</th></tr></thead>
+    <tbody>
+      <tr><td>中文接中文</td><td class="num-cell">空</td><td>「…性能」＋「优化和灰度…」→「…性能优化和灰度…」</td></tr>
+      <tr><td>中文与英文 / 数字</td><td class="num-cell">1 个空格</td><td>「…覆盖了」＋「12 个服务」→「…覆盖了 12 个服务」</td></tr>
+      <tr><td>上一行以标点结尾</td><td class="num-cell">空</td><td>「…服务，」＋「平均响应…」→ 直接相接</td></tr>
+      <tr><td>英文行尾连字符断词</td><td class="num-cell">去掉 <code>-</code></td><td><code>inter-</code> ＋ <code>national</code> → <code>international</code></td></tr>
+    </tbody>
+  </table>
+
+  <h3>7.4 保守纠错：为什么不做形近字替换</h3>
+  <p>「纠错」这个词很容易被做得过度。本实现划了一条明确的线：</p>
+  <div class="grid2">
+    <div class="card">
+      <div class="t">会做 <span class="tag g">有唯一答案</span></div>
+      <div class="d">
+        <ul style="margin:8px 0 0;padding-left:18px;font-size:13px">
+          <li>重复虚词折叠：<code>的的</code>、<code>是是</code>（叠用的虚词没有正常语义）</li>
+          <li>数字串里的字母混淆：<code>2O26</code> → <code>2026</code>（仅当前后都是数字）</li>
+          <li>高置信错别字：<code>己经</code>、<code>因该</code>、<code>帐号</code>——错的那个写法不存在第二种解释</li>
+        </ul>
+      </div>
+    </div>
+    <div class="card">
+      <div class="t">不做 <span class="tag r">需要理解上下文</span></div>
+      <div class="d">
+        <ul style="margin:8px 0 0;padding-left:18px;font-size:13px">
+          <li>形近字替换：<code>未/末</code>、<code>己/已</code>、<code>土/士</code>——判错一次就是改错原文</li>
+          <li>同义润色、精简、补全主语：那是改写，不是整理</li>
+          <li>引入云端大模型：截图不出本机是产品前提，不能为润色破例</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <p style="font-size:13.4px;color:var(--muted)">
+    叠词也做了保护：<code>看看</code>、<code>试试</code>、<code>慢慢</code>、<code>一一对应</code> 都不会被折叠——折叠表只覆盖那些叠用后不成立的虚词。
+  </p>
+
+  <h3>7.5 保真校验与可追溯</h3>
+  <p>
+    「不改变实质内容」不能只靠承诺，得能验证。做法是把两侧都归一成一条<b>内容骨架</b>再比对：
+  </p>
+  <pre style="margin:12px 0"><span class="k">def</span> signature(text):
+    <span class="c">"""内容骨架：NFKC 归一 → 去掉全部空白与标点，只留实质字符"""</span>
+    s = unicodedata.normalize(<span class="s">"NFKC"</span>, text)
+    <span class="k">return</span> <span class="s">""</span>.join(ch <span class="k">for</span> ch <span class="k">in</span> s
+                   <span class="k">if not</span> ch.isspace() <span class="k">and not</span> is_punct(ch))
+
+<span class="k">if</span> signature(raw) == signature(tidied):
+    fidelity = <span class="s">"ok"</span>          <span class="c"># 完全保真：只动了形，一个字都没增删改</span></pre>
+  <p>
+    用 NFKC 而不是原样比较，是因为全角数字经 NFKC 后与半角等价——这样「字符归一」不会被误判成内容变更，
+    只有真正的纠错才会让骨架出现差异。骨架不等时用 <code>difflib</code> 逐字比对，算出改动字数：
+    不超过 <code>max(3 字, 2%)</code> 记为 <code>minor</code>（属纠错规则所致），超出则记 <code>warn</code>，
+    明细面板里直接提示「建议对照原文」。绝大多数整理（只动空白与标点）会走上面那条零成本的分支。
+  </p>
+  <p>
+    每一类改动同时写入 ChangeLog：规则名、命中次数、第一处 <code>before → after</code> 样例。
+    这是「可追溯」的落点——用户不需要读源码，就能知道整理到底改了什么。
+  </p>
+
+  <h3>7.6 呈现形式</h3>
+  <p>
+    结果窗顶部左侧是「<b>整理 / 原文</b>」分段切换，右侧是「<b>整理明细 N</b>」。默认停在整理稿，
+    想核对时一键切回逐行原文；「复制」按钮复制的始终是<b>当前视图</b>的内容，不会出现「看着整理稿、粘贴出原文」的错位。
+  </p>
+  <figure>
+    <img src="img/result.png" alt="结果窗：整理后的文本，顶部有整理/原文切换与整理明细入口">
+    <figcaption>默认视图是整理稿：四行被窗口截断的正文合成了一段，半角标点全部转成全角，汉字之间的噪声空格已清除。顶部「整理」高亮，「整理明细 8」显示共有 8 处改动。</figcaption>
+  </figure>
+  <figure>
+    <img src="img/tidy-details.png" alt="整理明细面板：每类改动的计数与前后样例">
+    <figcaption>展开「整理明细」：逐条列出改了什么、改了几处、改前改后分别是什么，并给出内容相似度与保真结论。看原文时该面板会自动收起，避免两个视图混在一起。</figcaption>
+  </figure>
+  <p style="font-size:13.4px;color:var(--muted)">
+    整理视图下会隐藏「排版：逐行 / 合段」按钮——整理本身已经做了合段，两个开关同时存在只会互相打架。
+    用户的视图偏好与整理开关都写进 <code>config.json</code>，下次识别保持上次的选择。
+  </p>
+
+  <h2 id="s9"><span class="num">09</span>主体文字过滤：只给用户要的那一层</h2>
+  <p>
+    框选一块屏幕，里面常常不止一层文字。最典型的是视频/截图上的大字标题：美术字压在页面正文上，
+    两层文字在几何上完全混在一起。OCR 会把两层都认出来，拼版时彼此穿插，读出来是一锅粥：
+  </p>
+  <div class="box warn">
+    <p style="margin:0 0 6px"><b>修复前</b>（同一块区域，1 行 122 字）：</p>
+    <p style="margin:0;font-family:ui-monospace,Consolas,monospace;font-size:13px">
+      github.com/Small-tailqwq/对话用中文展示思考过程轨迹帮我安装这个插件： dsh-deep直接展示后面…</p>
+    <p style="margin:10px 0 6px"><b>修复后</b>（3 行 47 字，只剩主体）：</p>
+    <p style="margin:0;font-family:ui-monospace,Consolas,monospace;font-size:13px">
+      帮我安装这个插件：<br>github.com/Small-tailqwq/<br>dsh-deep-whale</p>
+  </div>
+
+  <h3>9.1 两个根因</h3>
+  <ul>
+    <li><b>行聚类只看纵向重叠</b>：<code>group_lines</code> 用垂直重叠率决定「哪些框属于同一行」。
+      大标题的检测框又高又宽，与背后每一行小字都重叠 60% 以上，于是两层被搓进同一行，再按 x 排序拼接。</li>
+    <li><b>没有「哪一层是用户要的」这个概念</b>：链路里每一层都默认「区域内所有文字都要」，
+      而用户的真实意图常常是「只要那块红色大字」。</li>
+  </ul>
+
+  <h3>9.2 判据：字号 × 墨迹彩度</h3>
+  <p>
+    不做语义判断（那需要语言模型，破坏纯离线约定），只用屏幕文字两个最稳定的视觉事实。
+    实测数据来自一张抖音视频截图（大字标题 + 页面正文）：
+  </p>
+  <table>
+    <thead><tr><th style="width:150px">层</th><th style="width:150px">框高（≈字号）</th><th style="width:190px">墨迹色 / 彩度</th><th>结论</th></tr></thead>
+    <tbody>
+      <tr><td>标题 3 行</td><td class="num-cell">126 / 144 / 173 px</td><td class="num-cell">(249,172,213) · 82</td><td>大字号 + 彩色 → 主体</td></tr>
+      <tr><td>页面正文 4 行</td><td class="num-cell">14 / 16 / 17 / 20 px</td><td class="num-cell">灰阶 · 0～10</td><td>小字号 + 灰阶 → 干扰</td></tr>
+    </tbody>
+  </table>
+  <p>
+    <b>墨迹色怎么量</b>（<code>subject.analyze</code>）：先对框内像素做 5-bit 量化取众数当背景，再把与背景差异够大的像素算作「墨迹」，
+    最后看墨迹里彩度（max−min）够高的那部分。不取平均色的原因：美术字自带描边、阴影和抗锯齿过渡，
+    平均值会把红描边和黑阴影混成脏褐色，反而判不出是红色。实测标题描边量出来是 (249,172,213) / 色相 328°，
+    落进「红」这一档（红跨越 0°，按 315°～25° 收口）。
+  </p>
+
+  <h3>9.3 三步筛选</h3>
+  <table>
+    <thead><tr><th style="width:130px">步骤</th><th>规则</th><th style="width:200px">为什么这么定</th></tr></thead>
+    <tbody>
+      <tr><td>① 有没有主体</td><td>最大框高 &lt; 正文层（高度 25 分位）× 2.0 时<b>不过滤</b></td>
+        <td>正常文档标题只有正文的 1.4～1.6 倍，没有「一眼主体」；用 25 分位而不是中位数，
+          是因为大字占比高时中位数会被拉到两层之间</td></tr>
+      <tr><td>② 切尺寸带</td><td>保留框高 ≥ max(最大框高 × 0.45, 正文层 × 1.6) 的框</td>
+        <td>0.45 容忍同一标题里中英行高差异（173 vs 126），又不会把 14px 正文带进来</td></tr>
+      <tr><td>③ 色系收敛</td><td>尺寸带里彩色框占 ≥70% 时，只留同色系</td>
+        <td>处理「红标题 + 同尺寸黑副标」；彩色只是点缀时不动，避免拆散整行</td></tr>
+    </tbody>
+  </table>
+  <p>
+    <code>subject_filter</code> 可配成 <code>auto</code>（默认）/ <code>off</code> / <code>large</code>（强制只留最大字号）/
+    <code>red</code>、<code>color:blue</code>（只留指定色系 + 大字号）。显式色系规则找不到该颜色时<b>不过滤</b>，
+    宁可多给也不误删。
+  </p>
+
+  <h3>9.4 同时修掉的两处行聚类问题</h3>
+  <p>主体过滤是「事后筛」，但原文视图仍要能看。为此给 <code>group_lines</code> 补了两道闸：</p>
+  <ul>
+    <li><b>字号闸</b>：行内框高差 &gt;2.2 倍不并成一行——大标题与背后小字不能合成一句。</li>
+    <li><b>水平闸</b>：水平重叠率 &gt;0.35 不并成一行——同一行的文字是左右并排的，
+      竖向堆叠的三行美术字检测框彼此压盖，只有这道闸能拦住（实测三行大字曾被并成一行、
+      按 x 排序后变成 `网址/中文/英文` 的乱序）。</li>
+  </ul>
+
+  <h3>9.5 呈现与可追溯</h3>
+  <ul>
+    <li>发生过滤时，结果窗右上角出现 <b>「主体 3/8」</b> 按钮，点一下变成「全部 8」，正文立即切回未过滤版本——
+      <b>滤掉了什么，随时可查</b>，不重跑 OCR（成本只有拼版，毫秒级）。</li>
+    <li>顶部元信息与「整理明细」会写明判定依据（<code>主体 红色 · 144px 大字号 · 滤掉 5 框</code>）。</li>
+    <li>悬浮球右键可整体关掉（`只提取主体文字（大字/彩色）`），关闭后行为与旧版一致。</li>
+  </ul>
+
+  <div class="box accent">
+    <h4>边界</h4>
+    <ul>
+      <li>主体判据只有「字号 + 颜色」，不读内容：一张纯彩色海报（所有文字都是彩色且同级字号）不会触发过滤。</li>
+      <li>深色主题的白字是灰阶，按颜色分不出来，此时只靠字号——这通常够用，因为主体仍然更大。</li>
+      <li>框内文字彩度低于 30 的一律当灰阶（浅灰水印字会归到「灰」），显式指定色系时可能漏掉这类字。</li>
+      <li>同层文字里既有彩色又有灰阶，且彩色占比低于 70% 时不收敛，两者都会保留。</li>
+    </ul>
+  </div>
+
+  <h2 id="s10"><span class="num">10</span>核心模块划分与主要依赖</h2>
+  <table>
+    <thead>
+      <tr><th style="width:150px">模块</th><th style="width:56px">行数</th><th>职责</th><th style="width:270px">关键实现</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>winutil.py</code></td><td class="num-cell">184</td><td>Win32 适配</td><td>DPI 感知、<code>SetWindowPos</code> 精确摆放、显示器枚举、单实例、剪贴板</td></tr>
+      <tr><td><code>hotkey.py</code></td><td class="num-cell">106</td><td>全局热键</td><td><code>RegisterHotKey</code> + 独立消息循环线程、失败检测与降级</td></tr>
+      <tr><td><code>capture.py</code></td><td class="num-cell">48</td><td>抓屏</td><td>虚拟屏包围盒、全局坐标裁剪、修饰键释放</td></tr>
+      <tr><td><code>overlay.py</code></td><td class="num-cell">266</td><td>框选交互</td><td>每屏一个置顶窗口、压暗层 + 选区提亮、像素放大镜、尺寸标签、Toast</td></tr>
+      <tr><td><code>ocr.py</code></td><td class="num-cell">213</td><td>识别</td><td>可插拔后端 + 降级链、反色/BGR 预处理、置信度过滤、预热</td></tr>
+      <tr><td><code>structure.py</code></td><td class="num-cell">622</td><td>结构判定</td><td>列候选聚类 / 逐行签名 / 区块切分 / 单元还原（折行合并、跨列切分、徽标剔除）/ 字号分层，纯函数可单测</td></tr>
+      <tr><td><code>layout.py</code></td><td class="num-cell">427</td><td>版面还原</td><td>按区块分派排版（网格 / 分栏 / 正文）、行聚类 / 行内拼接 / 段落切分 / 缩进折算，并输出行元信息，纯函数可单测</td></tr>
+      <tr><td><code>tidy.py</code></td><td class="num-cell">612</td><td>文本整理</td><td>字符归一 / 标点统一 / 空格清理 / 断行重排 / 段落重组 / 保守纠错；ChangeLog + 内容骨架保真校验，纯函数可单测</td></tr>
+      <tr><td><code>subject.py</code></td><td class="num-cell">350</td><td>主体过滤</td><td>墨迹颜色采样（量化取背景 → 墨迹 → 彩度/色相）、尺寸带与色系收敛、规则解析（auto/off/large/色系），纯函数可单测</td></tr>
+      <tr><td><code>result_window.py</code></td><td class="num-cell">476</td><td>结果窗</td><td>整理/原文双视图、整理明细面板、可编辑文本（自动折行、无横向滚动）、复制、重识别、排版切换、DPI 缩放与窄窗重排</td></tr>
+      <tr><td><code>pill.py</code></td><td class="num-cell">117</td><td>悬浮球</td><td>无边框置顶、拖动/点击区分、右键菜单（含整理开关）、位置持久化</td></tr>
+      <tr><td><code>app.py</code></td><td class="num-cell">312</td><td>编排</td><td>状态机、防重入、队列回调、线程编排、整理触发与降级、错误提示</td></tr>
+      <tr><td><code>main.py</code> / <code>config.py</code></td><td class="num-cell">77</td><td>入口与配置</td><td>DPI 先行、单实例、<code>%APPDATA%/TextGrabber/config.json</code></td></tr>
+    </tbody>
+  </table>
+
+  <h3>线程模型</h3>
+  <table>
+    <thead><tr><th style="width:170px">线程</th><th>职责</th><th style="width:230px">约束</th></tr></thead>
+    <tbody>
+      <tr><td>Tk 主线程</td><td>所有窗口：遮罩、悬浮球、结果窗、Toast</td><td>Tk 非线程安全，UI 变更只能在此线程</td></tr>
+      <tr><td>热键线程</td><td><code>RegisterHotKey</code> + 消息循环</td><td>只往队列投递「开始框选」意图，不碰 UI</td></tr>
+      <tr><td>OCR 工作线程</td><td>预处理 + 推理</td><td>完成后把回调投回队列，由主线程弹结果窗</td></tr>
+      <tr><td>预热线程</td><td>启动时加载 ONNX 模型</td><td>让首次框选不必等模型加载（约 1 s）</td></tr>
+    </tbody>
+  </table>
+  <p>跨线程只有一条通道：<code>queue.Queue</code>，主线程每 45 ms 轮询一次。<b>任何 UI 操作都不在子线程里发生</b>，这是这类常驻小工具最常见的崩溃来源。</p>
+
+  <h3>主要依赖</h3>
+  <table>
+    <thead><tr><th style="width:200px">依赖</th><th style="width:110px">体积</th><th>用途与取舍</th></tr></thead>
+    <tbody>
+      <tr><td><code>rapidocr&gt;=3.0</code></td><td class="num-cell">32 MB<br><span style="color:#6B7280">（含模型 31 MB）</span></td><td>PP-OCRv6 检测 + 方向分类 + 识别，模型随包分发，无需联网下载</td></tr>
+      <tr><td><code>onnxruntime</code></td><td class="num-cell">48 MB</td><td>CPU 推理引擎；不装 CUDA 版，笔记本无独显也能跑</td></tr>
+      <tr><td><code>pillow</code></td><td class="num-cell">7 MB</td><td>抓屏、裁剪、缩放、Tk 位图（<code>ImageTk</code>）</td></tr>
+      <tr><td><code>numpy</code></td><td class="num-cell">25 MB</td><td>图像张量与 onnxruntime 共享</td></tr>
+      <tr><td>Tkinter</td><td class="num-cell">系统自带</td><td><b>没有引入 Qt/Electron</b>：GUI 只用到画布与文本框，Tk 足够，启动快、打包小</td></tr>
+    </tbody>
+  </table>
+
+  <h2 id="s11"><span class="num">11</span>关键交互流程</h2>
+
+  <div class="svg-wrap">
+  <svg viewBox="0 0 880 420" xmlns="http://www.w3.org/2000/svg" font-family="Microsoft YaHei UI,Segoe UI,sans-serif">
+    <defs>
+      <marker id="ar2" markerWidth="9" markerHeight="9" refX="7" refY="3.2" orient="auto">
+        <path d="M0,0 L7,3.2 L0,6.4 z" fill="#64748B"/>
+      </marker>
+    </defs>
+    <!-- 参与方 -->
+    <g font-size="12" font-weight="600" fill="#374151">
+      <text x="72" y="26" text-anchor="middle">用户</text>
+      <text x="240" y="26" text-anchor="middle">热键 / 悬浮球</text>
+      <text x="412" y="26" text-anchor="middle">抓屏 + 遮罩</text>
+      <text x="584" y="26" text-anchor="middle">OCR 线程</text>
+      <text x="756" y="26" text-anchor="middle">结果窗</text>
+    </g>
+    <g stroke="#E2E8F0" stroke-width="1" stroke-dasharray="4 5">
+      <line x1="72" y1="38" x2="72" y2="386"/><line x1="240" y1="38" x2="240" y2="386"/>
+      <line x1="412" y1="38" x2="412" y2="386"/><line x1="584" y1="38" x2="584" y2="386"/>
+      <line x1="756" y1="38" x2="756" y2="386"/>
+    </g>
+    <!-- 时序箭头 -->
+    <g stroke="#64748B" stroke-width="1.3" fill="none">
+      <line x1="72" y1="82" x2="234" y2="82" marker-end="url(#ar2)"/>
+      <line x1="240" y1="126" x2="406" y2="126" marker-end="url(#ar2)"/>
+      <line x1="412" y1="170" x2="246" y2="170" marker-end="url(#ar2)"/>
+      <line x1="72" y1="214" x2="406" y2="214" marker-end="url(#ar2)"/>
+      <line x1="412" y1="258" x2="578" y2="258" marker-end="url(#ar2)"/>
+      <line x1="584" y1="302" x2="750" y2="302" marker-end="url(#ar2)"/>
+      <line x1="72" y1="346" x2="750" y2="346" marker-end="url(#ar2)"/>
+      <line x1="756" y1="378" x2="78" y2="378" marker-end="url(#ar2)"/>
+    </g>
+    <!-- 步骤文字（白描边，避免被虚线穿透） -->
+    <g font-size="12" fill="#111827" stroke="#FFFFFF" stroke-width="4"
+       paint-order="stroke" stroke-linejoin="round" stroke-linecap="round">
+      <text x="84" y="74">① 按 Ctrl+Alt+Q，或点悬浮球</text>
+      <text x="252" y="118">② 隐藏自身 → 抓整个虚拟桌面（13–19 ms）</text>
+      <text x="252" y="162">③ 每屏铺遮罩，等待框选</text>
+      <text x="84" y="206">④ 拖拽框选（实时尺寸 + 像素放大镜）</text>
+      <text x="424" y="250">⑤ 裁剪 → 预处理 → 推理（≈0.4 s）</text>
+      <text x="596" y="294">⑥ 版面还原 → 弹结果窗</text>
+      <text x="84" y="338">⑦ 编辑 / 切换排版 / Ctrl+Enter 复制</text>
+      <text x="744" y="370" text-anchor="end">⑧ 已复制，可直接粘贴</text>
+    </g>
+    <text x="72" y="406" font-size="11.5" fill="#94A3B8">任意时刻按 Esc / 右键 / 位移 &lt; 5px 的单击 = 取消，不产生任何副作用</text>
+  </svg>
+  </div>
+
+  <h3>典型场景</h3>
+  <div class="grid2">
+    <div class="card">
+      <div class="t">① 网页/PDF 里取一段带格式的文字</div>
+      <div class="d">热键 → 框住标题与正文 → 结果窗直接 Ctrl+Enter 复制 → 粘到 Word 里保留换行与缩进。</div>
+    </div>
+    <div class="card">
+      <div class="t">② 从截图里的表格取数</div>
+      <div class="d">框住表格 → 输出为制表符分隔 → 粘进 Excel 自动成列，不用手工对齐。</div>
+    </div>
+    <div class="card">
+      <div class="t">③ 报错信息 / 日志转文本</div>
+      <div class="d">深色终端里框选，自动反色识别；日志的缩进层级被折算成前导空格保留。</div>
+    </div>
+    <div class="card">
+      <div class="t">④ 内容会滚动更新的场景</div>
+      <div class="d">Ctrl+Alt+D 对「上次的区域」直接重识别，不需要再框一次（盯盘、监控面板）。</div>
+    </div>
+  </div>
+
+  <h3>界面实拍</h3>
+  <figure>
+    <img src="img/overlay.png" alt="框选遮罩：选区提亮、尺寸标签、像素放大镜">
+    <figcaption>框选态：选区保持原亮度、外围压暗；左上角实时显示像素尺寸「610 × 205」；光标旁是 9× 像素放大镜，便于精确对齐行首。</figcaption>
+  </figure>
+  <p style="font-size:13.4px;color:var(--muted)">结果窗的外观与「整理 / 原文」双视图见 7.6 的两张截图。</p>
+
+  <h2 id="s12"><span class="num">12</span>性能与资源实测</h2>
+  <p>测试机：Windows 11 · 1920×1080 · 单显示器 · CPU 推理（无独显加速）。</p>
+  <table>
+    <thead><tr><th style="width:300px">环节</th><th style="width:180px">实测</th><th>说明</th></tr></thead>
+    <tbody>
+      <tr><td>全屏抓图（1920×1080）</td><td class="num-cell">13–19 ms</td><td>抓整个虚拟桌面，非逐屏拼接</td></tr>
+      <tr><td>热键 → 遮罩可交互</td><td class="num-cell">&lt; 100 ms</td><td>含隐自身 + 抓屏 + 建窗 + 铺图</td></tr>
+      <tr><td>OCR（600×340 选区）</td><td class="num-cell">0.37–0.40 s</td><td>预热后，含预处理</td></tr>
+      <tr><td>OCR（1200×700 选区）</td><td class="num-cell">0.39–0.41 s</td><td>面积增大 4 倍，耗时几乎不变（同时长限制缩放）</td></tr>
+      <tr><td>首次模型加载</td><td class="num-cell">≈ 1.0 s</td><td>启动即在后台预热，用户不等待</td></tr>
+      <tr><td>遮罩高亮层刷新</td><td class="num-cell">6.6 ms（全屏）<br>1.5 ms（900×600）</td><td>拖拽跟手，无卡顿</td></tr>
+      <tr><td>结构判定（15 框 / 图标网格）</td><td class="num-cell">9.0 ms</td><td>列聚类 + 单元还原 + 跨列切分，随框数线性增长</td></tr>
+      <tr><td>文本整理（2 000 字）</td><td class="num-cell">4–6 ms</td><td>纯字符串处理，与 OCR 串在同一线程，不额外做线程切换</td></tr>
+      <tr><td>文本整理（8 000 字）</td><td class="num-cell">9–12 ms</td><td>含 ChangeLog 记录与内容骨架校验；骨架一致时跳过 difflib</td></tr>
+      <tr><td>内存常驻</td><td class="num-cell">≈ 180–260 MB</td><td>主要是 onnxruntime 与模型权重</td></tr>
+      <tr><td>依赖总体积</td><td class="num-cell">≈ 110 MB</td><td>模型 31 MB 已含在内</td></tr>
+    </tbody>
+  </table>
+
+  <h2 id="s13"><span class="num">13</span>使用限制与已知风险</h2>
+  <p>下面这些是「当前实现确实做不到」的部分，不是「以后再说」的委婉说法。</p>
+
+  <h3>平台与运行环境</h3>
+  <ul>
+    <li><b>仅 Windows</b>。<code>RegisterHotKey</code> / <code>SetWindowPos</code> / GDI 抓屏都是 Win32 专有；macOS 需要换成 <code>CGEventTap</code> + <code>ScreenCaptureKit</code> 并重做权限申请（屏幕录制授权），Linux 则要 X11/Wayland 两套方案。</li>
+    <li><b>热键可能被占用</b>。<code>RegisterHotKey</code> 是独占的，注册失败会提示并可点悬浮球；组合键可在 <code>config.json</code> 改。开发机上 <code>Ctrl+Alt+R</code> 就被其它软件占用，因此默认改用 <code>Ctrl+Alt+D</code> 做「重识别」。</li>
+    <li><b>需要 Python 3.10+</b>（含 Tkinter）。分发给非技术用户建议用 PyInstaller 打包成单目录 exe（约 150 MB），当前仓库提供的是源码运行方式。</li>
+  </ul>
+
+  <h3>抓不到画面的内容</h3>
+  <ul>
+    <li><b>硬件加速 / DRM 保护的窗口</b>：部分视频播放器、流媒体受保护内容、独占全屏游戏，GDI 抓屏会得到黑块。这是 <code>BitBlt</code> 路径的固有限制，解法是改用 Windows Graphics Capture（WGC），当前未实现。</li>
+    <li>开启 HDR 或特殊色彩管理的屏幕上，抓到的像素可能偏亮/偏色，深色判定与反色偶有误判。</li>
+    <li>UWP 应用的部分受保护视图同理。窗口化模式通常可以正常抓取。</li>
+  </ul>
+
+  <h3>识别能力边界</h3>
+  <ul>
+    <li><b>不擅长</b>：手写体、艺术字/花体、竖排中文、旋转超过 ±15° 的文字、字号小于 8px、极低对比度或半透明叠加的文字、被水印严重覆盖的文字。</li>
+    <li><b>表格只做「制表符对齐」</b>，不还原真正的单元格结构：合并单元格、跨列表头、嵌套表格会丢失结构信息（只保留视觉上的列间距）。</li>
+    <li><b>列位还原依赖检测框</b>：若 OCR 检测阶段把整行多个单元格连成一个框，只能按位置比例 + 就近空格切开；纯中文没有空格可吸附时不切，整段留在首列（宁可保留，也不制造错字碎片）。</li>
+    <li><b>字体样式不可得</b>：引擎只返回四点框、文本与置信度，字号靠框高反推，字重/字体家族/颜色无法区分——所以能还原「字号层级与对齐」，还原不了「粗体、斜体、颜色」。</li>
+    <li><b>列数上限 8</b>，且分栏与网格以「单元格平均 22 字」为界；极短的分栏（诗歌、对话）会被按网格逐行输出。</li>
+    <li><b>不还原字号、颜色、加粗</b>。导出的纯文本只保留「换行 / 空行 / 缩进 / 制表符」这一层格式，粘贴到 Word 里会套用目标样式。</li>
+    <li>缩进是按像素折算成空格的近似值，原文用的若是 Tab 或固定缩进样式，折算后可能有 1 个字符的偏差。</li>
+    <li>主力语言是简体中文 + 英文；繁中、日、韩等 PP-OCRv6 也支持，但未做针对性回归测试。</li>
+  </ul>
+
+  <h3>交互层面的已知问题</h3>
+  <ul>
+    <li>结果窗是置顶窗口，在有全屏独占应用（游戏、部分播放器）时会被压在下面，需先退出全屏。</li>
+    <li>抓屏前会隐藏自己的窗口，那 100 ms 内如果目标界面正好在变化（视频、动画），可能抓到过渡帧。</li>
+    <li>混合 DPI 的多显示器下，跨屏框选可用，但选区尺寸一律以<b>物理像素</b>计，与 100% 缩放屏上的视觉大小不一致。</li>
+    <li>键盘快捷键只在结果窗有焦点时生效（<code>Ctrl+Enter</code> 全量复制）；悬浮球无焦点时不响应键盘。</li>
+  </ul>
+
+  <h3>合规与安全</h3>
+  <ul>
+    <li>全程<b>不联网、不上传</b>任何截图或文本；配置只落在本机 <code>%APPDATA%</code>。</li>
+    <li>不做键盘记录、不注入其它进程、不读取其它程序内存 —— 这也是选择 <code>RegisterHotKey</code> 而非全局钩子的原因之一，可显著降低被安全软件误报的概率。</li>
+    <li>请勿用于抓取他人隐私内容或受版权保护的材料；抓取受 DRM 保护的画面本身也受平台条款约束。</li>
+  </ul>
+
+  <h2 id="s14" style="border-top:1px solid var(--line)"><span class="num">14</span>后续演进方向</h2>
+  <table>
+    <thead><tr><th style="width:210px">方向</th><th>做法</th><th style="width:90px">优先级</th></tr></thead>
+    <tbody>
+      <tr><td>抓屏换 WGC</td><td>用 Windows.Graphics.Capture 替代 GDI <code>BitBlt</code>，解决硬件加速窗口黑屏</td><td>高</td></tr>
+      <tr><td>托盘图标 + 开机自启</td><td>注册表 <code>Run</code> 项 + 托盘菜单，替代常驻悬浮球</td><td>高</td></tr>
+      <tr><td>语义级整理</td><td>接本地小模型（如 1.5B 级）做断句与轻微润色，仍以「不改变实质内容」为前提，且必须可关闭、可对照原文</td><td>中</td></tr>
+      <tr><td>表格结构识别</td><td>接 PP-Structure 的表格还原模型，输出 Markdown/HTML 表格</td><td>中</td></tr>
+      <tr><td>翻译 / 朗读</td><td>结果窗加「译」与「读」，本地小模型或系统 TTS</td><td>中</td></tr>
+      <tr><td>历史记录</td><td>本地 SQLite 存最近 100 条（图 + 文本），支持回溯与搜索</td><td>低</td></tr>
+      <tr><td>打包分发</td><td>PyInstaller 单目录 + 自动更新</td><td>低</td></tr>
+    </tbody>
+  </table>
+
+  <footer>
+    代码与实测数据均来自本仓库当前实现（<code>screengrab/</code>，约 2 500 行，含 4 套自动化测试：
+    版面还原单测、文本整理单测、GUI 冒烟、整机联调与整理端到端）。
+    文中置信度、耗时均为本机单次实测值，会随硬件与内容复杂度浮动。
+  </footer>
+</div>
+</body>
+</html>

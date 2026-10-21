@@ -1,0 +1,20 @@
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+indent_size = 4
+max_line_length = 100
+
+[*.{md,html,css,yml,yaml,json,toml}]
+indent_size = 2
+trim_trailing_whitespace = false
+
+# Windows 批处理必须是 GBK + CRLF：控制台代码页 936，
+# 用 UTF-8 保存的 .bat 里的中文路径会失效
+[*.bat]
+charset = gbk
+end_of_line = crlf

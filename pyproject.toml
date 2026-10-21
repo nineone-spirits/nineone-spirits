@@ -1,0 +1,59 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "textgrabber"
+dynamic = ["version"]
+description = "屏幕任意区域框选取字：本地 OCR + 版面还原 + 文本整理，纯离线运行"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "Jiuyi Jiu" }]
+keywords = [
+  "ocr", "screen-capture", "screenshot", "text-extraction",
+  "rapidocr", "ppocr", "tkinter", "windows", "offline", "chinese",
+]
+classifiers = [
+  "Development Status :: 5 - Production/Stable",
+  "Environment :: Win32 (MS Windows)",
+  "Intended Audience :: End Users/Desktop",
+  "License :: OSI Approved :: MIT License",
+  "Operating System :: Microsoft :: Windows :: Windows 10",
+  "Operating System :: Microsoft :: Windows :: Windows 11",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Topic :: Multimedia :: Graphics :: Capture :: Screen Capture",
+  "Topic :: Text Processing",
+  "Typing :: Typed",
+]
+dependencies = [
+  "rapidocr>=3.0",
+  "onnxruntime>=1.16",
+  "pillow>=10.0",
+  "numpy>=1.24",
+]
+
+# 目标仓库地址（GitHub 账户 nineone-spirits）
+[project.urls]
+Homepage = "https://github.com/nineone-spirits/nineone-spirits"
+Source = "https://github.com/nineone-spirits/nineone-spirits"
+Issues = "https://github.com/nineone-spirits/nineone-spirits/issues"
+Changelog = "https://github.com/nineone-spirits/nineone-spirits/blob/main/CHANGELOG.md"
+
+# gui-scripts 而不是 scripts：Windows 上双击/命令行启动都不弹黑框
+[project.gui-scripts]
+textgrabber = "screengrab.main:main"
+
+[project.optional-dependencies]
+# 可选后端：追求更高精度时可装，程序会自动识别并优先使用
+paddle = ["paddleocr>=2.7", "paddlepaddle>=2.5"]
+
+[tool.setuptools]
+packages = ["screengrab"]
+
+[tool.setuptools.dynamic]
+version = { attr = "screengrab.__version__" }

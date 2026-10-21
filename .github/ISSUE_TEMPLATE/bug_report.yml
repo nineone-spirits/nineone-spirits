@@ -1,0 +1,99 @@
+name: 问题反馈
+description: 报告一个可复现的 bug（识别错误请附截图）
+title: "[Bug] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        感谢反馈。请尽量把信息填全——尤其是**复现步骤**和**截图**，这决定了问题能不能被定位。
+
+        如果只是「识别不准」，也请照此填写：贴一张能复现的截图比文字描述有效得多。
+
+  - type: checkboxes
+    id: preflight
+    attributes:
+      label: 提交前确认
+      options:
+        - label: 我已搜索过现有 Issue，没有重复
+          required: true
+        - label: 我已经用带控制台的方式（`python run.py`）启动过，没有报错信息被漏掉
+          required: true
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: 实际发生了什么
+      description: 现象、报错文本、错误截图都可以
+      placeholder: 框选后结果窗显示「没有识别到文字」……
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: 你期望的结果
+      placeholder: 应该识别出「帮我安装这个插件」这行大字
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: 复现步骤
+      placeholder: |
+        1. 打开某网页/PDF
+        2. 按 Ctrl+Alt+Q 框选左上角 700×200 的区域
+        3. 结果窗输出为……
+    validations:
+      required: true
+
+  - type: textarea
+    id: screenshot
+    attributes:
+      label: 截图（强烈建议）
+      description: 拖入图片即可。可打码，但请保留能复现问题的那部分文字、颜色与字号关系
+      placeholder: 把截图拖到这里
+
+  - type: input
+    id: version
+    attributes:
+      label: 版本
+      description: 见 `screengrab/__init__.py` 的 `__version__`，或 Release 页面上的 tag
+      placeholder: 1.3.0
+    validations:
+      required: true
+
+  - type: input
+    id: python
+    attributes:
+      label: Python 版本
+      description: 输出 `python -V` 的结果
+      placeholder: 3.13.12
+    validations:
+      required: true
+
+  - type: input
+    id: os
+    attributes:
+      label: 系统与缩放比例
+      description: 输出 `winver` 的结果；缩放比例见「设置 → 系统 → 显示」
+      placeholder: Windows 11 23H2 / 125%
+    validations:
+      required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: 问题出在哪个环节
+      options:
+        - 启动 / 安装
+        - 框选与抓屏（遮罩、放大镜、坐标）
+        - 识别准确率（漏字、错字、行序）
+        - 主体过滤（该留的没留 / 该滤的没滤）
+        - 版面还原（表格、分栏、缩进）
+        - 文本整理（合段、标点、纠错）
+        - 结果窗（显示、复制、按钮）
+        - 不太确定
+    validations:
+      required: true

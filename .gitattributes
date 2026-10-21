@@ -1,0 +1,24 @@
+# 统一换行：仓库内统一 LF，检出时按平台转换
+* text=auto
+
+*.py     text
+*.md     text
+*.toml   text
+*.yml    text
+*.yaml   text
+*.html   text
+*.css    text
+*.json   text
+*.txt    text
+
+# Windows 批处理是 GBK 编码（控制台代码页 936），禁止任何字符集/换行重写，
+# 否则中文路径会失效。用 -text 而不是 binary，保留文本 diff 能力。
+*.bat    -text
+*.cmd    -text
+
+# 二进制
+*.png    binary
+*.jpg    binary
+*.jpeg   binary
+*.ico    binary
+*.zip    binary

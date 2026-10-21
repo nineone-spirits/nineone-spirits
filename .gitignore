@@ -1,0 +1,31 @@
+# ---- Python ----
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# ---- 虚拟环境 ----
+.venv/
+venv/
+env/
+ENV/
+
+# ---- 本机会话数据 / 私有笔记（不进公开仓库）----
+.workbuddy/
+.idea/
+.vscode/
+*.spec
+*.log
+
+# ---- 测试用真实截图（含个人桌面信息）----
+tests/fixtures/
+
+# ---- 系统 ----
+Thumbs.db
+desktop.ini
+.DS_Store

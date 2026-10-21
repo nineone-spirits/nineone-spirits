@@ -1,0 +1,73 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: 测试 · Python ${{ matrix.python-version }}
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.10", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+          cache-dependency-path: pyproject.toml
+
+      - name: 安装依赖
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e .
+
+      - name: 语法检查
+        run: python -m compileall -q screengrab tests run.py
+
+      - name: 纯逻辑测试（不依赖桌面与模型）
+        run: |
+          python tests/test_structure.py
+          python tests/test_tidy.py
+
+      - name: 需要 OCR 模型的测试
+        run: |
+          python tests/test_subject.py
+          python tests/test_pipeline.py
+
+      # GUI 相关测试（test_gui_smoke / test_result_* / test_app_e2e / test_grid_e2e）
+      # 依赖真实桌面会话与屏幕抓取，在托管 runner 上不稳定，请本地运行。
+
+  build:
+    name: 可安装性检查
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: 构建 sdist 与 wheel
+        run: |
+          python -m pip install --upgrade pip build
+          python -m build
+
+      - name: 校验元数据
+        run: python -m pip install --upgrade twine && python -m twine check dist/*
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+          retention-days: 7

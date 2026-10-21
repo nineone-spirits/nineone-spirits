@@ -115,7 +115,13 @@ def test_layout_units() -> None:
 
 
 if __name__ == "__main__":
+    # 版面单元用例是纯逻辑，任何机器都能跑
     test_layout_units()
+    # 下面要真的把中文画进图里再识别：没有中文字体时画出来是空心方框，跑了也没意义
+    from tests.fonts import has_cjk_font, skip_note
+    if not has_cjk_font():
+        print("\n" + skip_note("合成界面图的端到端识别"))
+        raise SystemExit(0)
     service = OcrService()
     run_ocr(service, make_ui_image(), "浅色界面 100%")
     run_ocr(service, make_ui_image(dark=True), "深色界面 100%")

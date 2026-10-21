@@ -83,7 +83,15 @@ for %f in (tests\test_*.py) do @.venv\Scripts\python %f || echo FAILED: %f
 约定：**改动哪个模块，至少跑对应的那套测试**；改 `layout.py` / `structure.py` / `subject.py`
 这类公共几何逻辑时请全跑，它们是所有输出的上游。
 
-> `test_grid_e2e.py` 会抓取你当前桌面，请在非敏感内容的环境下运行。
+几条环境相关的注意事项：
+
+- `test_grid_e2e.py` 会抓取你当前桌面，请在非敏感内容的环境下运行；截图不在仓库里，
+  需要放到 `tests/fixtures/desktop-grid.png`（详见 `tests/fixture.py`）。
+- `test_subject.py` / `test_pipeline.py` / `test_tidy_e2e.py` 需要**能渲染中文的字体**来合成测试图。
+  机器上没有时（例如 GitHub 的 `windows-latest` 镜像）相关用例会自动跳过并正常退出，
+  纯规则与逻辑部分照常断言。想验证降级行为本身：`set TEXTGRABBER_NO_CJK_FONT=1` 后重跑。
+- GUI 相关测试（`test_gui_smoke` / `test_result_*` / `test_app_e2e`）需要真实桌面会话，
+  CI 里不跑，请本地执行。
 
 ## 代码地图
 

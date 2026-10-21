@@ -44,6 +44,8 @@ jobs:
         run: |
           python tests/test_subject.py
           python tests/test_pipeline.py
+        # 托管 runner 默认不带中文字体（汉字会渲染成空心方框），这几套测试会自动跳过
+        # 依赖字形的用例并正常退出，纯规则/逻辑部分仍然照常断言。
 
       # GUI 相关测试（test_gui_smoke / test_result_* / test_app_e2e / test_grid_e2e）
       # 依赖真实桌面会话与屏幕抓取，在托管 runner 上不稳定，请本地运行。

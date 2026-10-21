@@ -61,6 +61,10 @@ def make_image() -> Image.Image:
 
 
 def main() -> None:
+    from tests.fonts import has_cjk_font, skip_note
+    if not has_cjk_font():
+        print(skip_note("合成窄栏截图的端到端用例"))
+        return
     image = make_image()
     out_path = Path(__file__).resolve().parents[1] / "docs" / "img" / "tidy-source.png"
     image.save(out_path)

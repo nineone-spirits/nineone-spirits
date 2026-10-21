@@ -17,6 +17,7 @@ sys.path.insert(0, str(ROOT))
 
 from screengrab import subject                            # noqa: E402
 from screengrab.layout import TextItem, build, group_lines  # noqa: E402
+from tests.fonts import cjk_font, skip_note               # noqa: E402
 
 _passed = 0
 RED = (214, 32, 74)
@@ -48,11 +49,11 @@ def item(text: str, x: float, y: float, h: float, family: str = "灰",
 
 
 def font(size: int) -> ImageFont.FreeTypeFont:
-    for name in ("msyh.ttc", "simhei.ttf", "arial.ttf"):
-        path = Path("C:/Windows/Fonts") / name
-        if path.exists():
-            return ImageFont.truetype(str(path), size)
-    raise RuntimeError("找不到可用字体，无法生成合成图")
+    """合成图要画中文，拿不到中文字体时直接抛——调用方会先判断再进来。"""
+    f = cjk_font(size)
+    if f is None:
+        raise RuntimeError("no cjk font")
+    return f
 
 
 def draw_line(draw: ImageDraw.ImageDraw, xy, text: str, f, color):
@@ -236,12 +237,17 @@ def main() -> int:
     test_parse_rule()
     print("== 色相归类 ==")
     test_hue_family()
-    print("== 像素采样 ==")
-    test_sampling()
-    print("== 行聚合 ==")
-    test_line_grouping()
-    print("== 端到端 ==")
-    test_e2e()
+    # 下面两节要真的把中文画进图里，没有中文字体就无法执行（CI 镜像默认没装）
+    if cjk_font(24) is None:
+        print("== 像素采样 / 端到端 ==")
+        print("  " + skip_note("像素采样与端到端用例"))
+    else:
+        print("== 像素采样 ==")
+        test_sampling()
+        print("== 行聚合 ==")
+        test_line_grouping()
+        print("== 端到端 ==")
+        test_e2e()
     print(f"\n通过：{_passed} 项主体过滤断言")
     return 0
 

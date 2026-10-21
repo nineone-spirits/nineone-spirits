@@ -39,10 +39,10 @@ dependencies = [
 
 # 目标仓库地址（GitHub 账户 nineone-spirits）
 [project.urls]
-Homepage = "https://github.com/nineone-spirits/nineone-spirits"
-Source = "https://github.com/nineone-spirits/nineone-spirits"
-Issues = "https://github.com/nineone-spirits/nineone-spirits/issues"
-Changelog = "https://github.com/nineone-spirits/nineone-spirits/blob/main/CHANGELOG.md"
+Homepage = "https://github.com/nineone-spirits/textgrabber"
+Source = "https://github.com/nineone-spirits/textgrabber"
+Issues = "https://github.com/nineone-spirits/textgrabber/issues"
+Changelog = "https://github.com/nineone-spirits/textgrabber/blob/main/CHANGELOG.md"
 
 # gui-scripts 而不是 scripts：Windows 上双击/命令行启动都不弹黑框
 [project.gui-scripts]

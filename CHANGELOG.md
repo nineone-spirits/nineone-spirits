@@ -75,8 +75,8 @@ Nothing yet.
 - Pluggable OCR backends with a fallback chain: RapidOCR 3.x → RapidOCR 1.x → PaddleOCR.
 - Configuration persisted to `%APPDATA%\TextGrabber\config.json`.
 
-[Unreleased]: https://github.com/nineone-spirits/nineone-spirits/compare/v1.3.0...HEAD
-[1.3.0]: https://github.com/nineone-spirits/nineone-spirits/releases/tag/v1.3.0
-[1.2.0]: https://github.com/nineone-spirits/nineone-spirits/releases/tag/v1.2.0
-[1.1.0]: https://github.com/nineone-spirits/nineone-spirits/releases/tag/v1.1.0
-[1.0.0]: https://github.com/nineone-spirits/nineone-spirits/releases/tag/v1.0.0
+[Unreleased]: https://github.com/nineone-spirits/textgrabber/compare/v1.3.0...HEAD
+[1.3.0]: https://github.com/nineone-spirits/textgrabber/releases/tag/v1.3.0
+[1.2.0]: https://github.com/nineone-spirits/textgrabber/releases/tag/v1.2.0
+[1.1.0]: https://github.com/nineone-spirits/textgrabber/releases/tag/v1.1.0
+[1.0.0]: https://github.com/nineone-spirits/textgrabber/releases/tag/v1.0.0

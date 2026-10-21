@@ -96,8 +96,8 @@ python -c "import tkinter; print('ok')"
 **Option 1 — one-click script (recommended)**
 
 ```bat
-git clone https://github.com/nineone-spirits/nineone-spirits.git
-cd nineone-spirits
+git clone https://github.com/nineone-spirits/textgrabber.git
+cd textgrabber
 install.bat
 ```
 
@@ -111,8 +111,8 @@ To skip the mirror entirely: `set TEXTGRABBER_NO_MIRROR=1`.
 **Option 2 — pip install (usable as a package)**
 
 ```bat
-git clone https://github.com/nineone-spirits/nineone-spirits.git
-cd nineone-spirits
+git clone https://github.com/nineone-spirits/textgrabber.git
+cd textgrabber
 py -3 -m venv .venv
 .venv\Scripts\python -m pip install -e .
 ```

@@ -36,7 +36,7 @@ python -c "import tkinter, venv; print('ok')"
 ## 本地开发
 
 ```bat
-git clone https://github.com/nineone-spirits/nineone-spirits.git
+git clone https://github.com/nineone-spirits/textgrabber.git
 cd textgrabber
 
 :: 方式 A：一键脚本（创建 .venv 并装依赖，走清华镜像）

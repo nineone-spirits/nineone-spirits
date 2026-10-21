@@ -96,7 +96,7 @@ python -c "import tkinter; print('ok')"
 **方式一：一键脚本（推荐）**
 
 ```bat
-git clone https://github.com/nineone-spirits/nineone-spirits.git
+git clone https://github.com/nineone-spirits/textgrabber.git
 cd textgrabber
 install.bat
 ```
@@ -107,7 +107,7 @@ install.bat
 **方式二：pip 安装（可当普通包用）**
 
 ```bat
-git clone https://github.com/nineone-spirits/nineone-spirits.git
+git clone https://github.com/nineone-spirits/textgrabber.git
 cd textgrabber
 py -3 -m venv .venv
 .venv\Scripts\python -m pip install -e .

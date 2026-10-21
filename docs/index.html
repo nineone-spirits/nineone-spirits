@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NineOne Spirits · TextGrabber — screen text capture, offline</title>
+<meta name="description" content="Press one hotkey, drag a box over any window, and get only the text you actually want. Local OCR, layout reconstruction, conservative tidying. Windows, fully offline, MIT licensed.">
+<meta property="og:title" content="NineOne Spirits · TextGrabber">
+<meta property="og:description" content="Screen text capture that keeps only the layer you want. Local OCR, fully offline, Windows.">
+<meta property="og:image" content="img/subject.png">
+<meta property="og:type" content="website">
+<style>
+  :root{
+    --ink:#111827; --ink2:#374151; --muted:#6B7280; --line:#E5E7EB;
+    --bg:#FFFFFF; --soft:#F9FAFB; --accent:#2563EB; --accent-soft:#EFF6FF;
+    --ok:#059669; --warn:#B45309; --warn-soft:#FFFBEB;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; background:#F3F4F6; color:var(--ink);
+    font-family:"Segoe UI","Microsoft YaHei UI","PingFang SC",system-ui,-apple-system,sans-serif;
+    font-size:15px; line-height:1.7; -webkit-font-smoothing:antialiased;
+  }
+  .page{max-width:960px;margin:0 auto;background:var(--bg);padding:0 64px 64px;
+        box-shadow:0 1px 3px rgba(0,0,0,.06),0 12px 40px rgba(0,0,0,.06)}
+  @media (max-width:820px){ .page{padding:0 22px 40px} }
+
+  .top{display:flex;align-items:center;justify-content:space-between;gap:16px;
+       padding:20px 0;border-bottom:1px solid var(--line);flex-wrap:wrap}
+  .brand{font-weight:700;letter-spacing:-.2px}
+  .brand span{color:var(--muted);font-weight:400;margin-left:8px;font-size:13.5px}
+  .top nav{display:flex;gap:18px;flex-wrap:wrap}
+  .top a{color:var(--ink2);text-decoration:none;font-size:13.5px}
+  .top a:hover{color:var(--accent)}
+
+  .hero{padding:48px 0 8px}
+  .kicker{font-size:12px;letter-spacing:.16em;color:var(--accent);font-weight:700;text-transform:uppercase}
+  h1{font-size:34px;line-height:1.28;margin:12px 0 14px;letter-spacing:-.6px}
+  h1 em{font-style:normal;color:var(--accent)}
+  .lead{font-size:16.5px;color:var(--ink2);margin:0 0 24px;max-width:700px}
+  .cta{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:18px}
+  .btn{display:inline-block;padding:11px 20px;border-radius:10px;text-decoration:none;
+       font-size:14px;font-weight:600;border:1px solid transparent}
+  .btn.primary{background:var(--accent);color:#fff}
+  .btn.primary:hover{background:#1D4ED8}
+  .btn.ghost{background:#fff;color:var(--ink);border-color:var(--line)}
+  .btn.ghost:hover{border-color:var(--accent);color:var(--accent)}
+  .meta{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 30px}
+  .chip{font-size:12.5px;color:var(--ink2);background:var(--soft);border:1px solid var(--line);
+        border-radius:999px;padding:4px 12px}
+  .chip b{color:var(--ink);font-weight:600}
+
+  figure{margin:26px 0 10px}
+  figure img{width:100%;display:block;border:1px solid var(--line);border-radius:12px}
+  figcaption{font-size:12.8px;color:var(--muted);margin-top:10px;text-align:center}
+
+  h2{font-size:20px;margin:56px 0 6px;letter-spacing:-.2px}
+  h2 .num{color:var(--accent);font-variant-numeric:tabular-nums;margin-right:10px;font-weight:800}
+  .sub{color:var(--muted);font-size:14px;margin:0 0 18px}
+
+  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
+  .card{border:1px solid var(--line);border-radius:12px;padding:16px 18px;background:var(--soft)}
+  .card h3{margin:0 0 6px;font-size:15px}
+  .card p{margin:0;font-size:13.6px;color:var(--ink2)}
+
+  .split{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:18px 0}
+  @media (max-width:760px){ .split{grid-template-columns:1fr} }
+  .split .box{border:1px solid var(--line);border-radius:12px;padding:14px 16px;background:var(--soft)}
+  .split .box.bad{border-color:#FCA5A5;background:#FEF2F2}
+  .split .box.good{border-color:#A7F3D0;background:#ECFDF5}
+  .box h4{margin:0 0 8px;font-size:13px;letter-spacing:.02em;text-transform:uppercase;color:var(--ink2)}
+  .box code{display:block;font-family:"Cascadia Mono",Consolas,monospace;font-size:12.6px;
+            line-height:1.6;word-break:break-word}
+
+  pre{background:#0F172A;color:#E2E8F0;border-radius:10px;padding:16px 18px;overflow:auto;
+      font-family:"Cascadia Mono",Consolas,monospace;font-size:12.8px;line-height:1.75}
+  pre .c{color:#94A3B8}
+  code.inl{font-family:"Cascadia Mono",Consolas,monospace;font-size:13px;background:#F3F4F6;
+           border:1px solid #E9EBEF;border-radius:5px;padding:1px 5px;color:#0F172A}
+
+  .steps{counter-reset:s;list-style:none;padding:0;margin:14px 0 0}
+  .steps li{position:relative;padding-left:38px;margin:12px 0;font-size:14px;color:var(--ink2)}
+  .steps li::before{counter-increment:s;content:counter(s);position:absolute;left:0;top:0;
+    width:26px;height:26px;border-radius:50%;background:var(--accent-soft);color:var(--accent);
+    font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center}
+  .steps b{color:var(--ink)}
+
+  .note{border:1px solid #DBEAFE;background:var(--accent-soft);border-radius:12px;
+        padding:14px 16px;font-size:13.6px;color:var(--ink2);margin:18px 0}
+  .note b{color:var(--ink)}
+
+  footer{margin-top:56px;padding-top:18px;border-top:1px solid var(--line);
+         display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;
+         font-size:13px;color:var(--muted)}
+  footer a{color:var(--ink2);text-decoration:none;margin-right:14px}
+  footer a:hover{color:var(--accent)}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="top">
+    <div class="brand">NineOne Spirits<span>TextGrabber</span></div>
+    <nav>
+      <a href="https://github.com/nineone-spirits/textgrabber">GitHub</a>
+      <a href="https://github.com/nineone-spirits/textgrabber/releases">Releases</a>
+      <a href="技术方案.html">Design notes</a>
+      <a href="https://github.com/nineone-spirits/textgrabber/blob/main/README.zh-CN.md">简体中文</a>
+    </nav>
+  </div>
+
+  <header class="hero">
+    <div class="kicker">Windows 10 / 11 · Offline OCR</div>
+    <h1>Select text on any screen.<br>Get back only <em>the text you want</em>.</h1>
+    <p class="lead">
+      One hotkey, drag a box over a window, a webpage or a PDF. Recognition runs on your machine,
+      the layout is reconstructed, and the layer you actually wanted is separated from the noise behind it.
+      Nothing leaves the computer.
+    </p>
+    <div class="cta">
+      <a class="btn primary" href="https://github.com/nineone-spirits/textgrabber/releases/latest">Download v1.3.0</a>
+      <a class="btn ghost" href="https://github.com/nineone-spirits/textgrabber">View source</a>
+    </div>
+    <div class="meta">
+      <span class="chip"><b>MIT</b> licensed</span>
+      <span class="chip">Python <b>3.10+</b></span>
+      <span class="chip"><b>100%</b> offline</span>
+      <span class="chip">No GPU</span>
+      <span class="chip">~0.4 s per capture</span>
+    </div>
+
+    <figure>
+      <img src="img/subject.png" alt="Result window: three lines of large red text extracted, background text filtered out">
+      <figcaption>Three lines kept, five background boxes filtered — shown as <code class="inl">Subject 3/8</code> in the corner.</figcaption>
+    </figure>
+  </header>
+
+  <h2><span class="num">01</span>The problem</h2>
+  <p class="sub">Grabbing text off the screen is easy. Getting text you can use is not.</p>
+  <div class="cards">
+    <div class="card">
+      <h3>It captures the wrong layer</h3>
+      <p>A headline sits on a page that has its own body text. Both get recognized and interleaved into one unreadable line.</p>
+    </div>
+    <div class="card">
+      <h3>The layout disappears</h3>
+      <p>Tables collapse into a single column, two-column pages read across, headings fuse into the paragraph below.</p>
+    </div>
+    <div class="card">
+      <h3>You have to clean it up</h3>
+      <p>Paragraphs broken by the window width, stray spaces between CJK characters, half-width punctuation in full-width text.</p>
+    </div>
+  </div>
+
+  <h2><span class="num">02</span>Before and after</h2>
+  <p class="sub">The same selection, 1.2.0 versus 1.3.0.</p>
+  <div class="split">
+    <div class="box bad">
+      <h4>1.2.0 — one line, 122 characters</h4>
+      <code>github.com/Small-tailqwq/对话用中文展示思考过程轨迹帮我安装这个插件： dsh-deep直接展示后面合温导现能物的是给出结构化的推 o-whale提，判断体据，备选方案为什么选它原始思到全的疑点 反复推翻的中间结论。15:45</code>
+    </div>
+    <div class="box good">
+      <h4>1.3.0 — three lines, 47 characters</h4>
+      <code>帮我安装这个插件：<br>github.com/Small-tailqwq/<br>dsh-deep-whale</code>
+    </div>
+  </div>
+
+  <h2><span class="num">03</span>What it does</h2>
+  <p class="sub">Four things, each solving a specific failure mode.</p>
+  <div class="cards">
+    <div class="card">
+      <h3>Subject text filter</h3>
+      <p>Decides which layer is the subject by font size × ink chroma, and drops the background text underneath. The <code class="inl">Subject 3/8</code> button switches back at any time.</p>
+    </div>
+    <div class="card">
+      <h3>Layout reconstruction</h3>
+      <p>Icon grids and parameter tables keep their column positions, aligned with tabs. Multi-column prose is read column by column.</p>
+    </div>
+    <div class="card">
+      <h3>Conservative tidying</h3>
+      <p>Merges hard wraps, normalizes punctuation, removes noise spaces, re-blocks headings and lists. Every change is counted and sampled.</p>
+    </div>
+    <div class="card">
+      <h3>Right where you are</h3>
+      <p><code class="inl">Ctrl+Alt+Q</code> anywhere, a 9× magnifier while selecting, <code class="inl">Ctrl+Alt+D</code> to re-read the last region after the content changes.</p>
+    </div>
+  </div>
+
+  <h2><span class="num">04</span>Screenshots</h2>
+  <div class="split">
+    <figure>
+      <img src="img/overlay.png" alt="Selection overlay with magnifier and pixel size">
+      <figcaption>Selection overlay with magnifier</figcaption>
+    </figure>
+    <figure>
+      <img src="img/grid.png" alt="Desktop icon grid reconstructed into aligned columns">
+      <figcaption>Icon grid reconstructed, column by column</figcaption>
+    </figure>
+  </div>
+
+  <h2><span class="num">05</span>Install</h2>
+  <p class="sub">Windows 10/11, Python 3.10+ with tkinter, about 300 MB of disk. No GPU.</p>
+  <pre><span class="c">:: clone, install, run</span>
+git clone https://github.com/nineone-spirits/textgrabber.git
+cd textgrabber
+install.bat        <span class="c">:: creates .venv, installs ~110 MB of dependencies</span>
+run.bat           <span class="c">:: a blue OCR pill appears in the corner</span></pre>
+  <ol class="steps">
+    <li><b>Press</b> <code class="inl">Ctrl+Alt+Q</code> and drag a box over any window.</li>
+    <li><b>Read</b> the result window: tidied text first, raw OCR one click away.</li>
+    <li><b>Copy</b> with <code class="inl">Ctrl+Enter</code>. Everything stays on your machine.</li>
+  </ol>
+  <div class="note">
+    <b>Prefer pip?</b> <code class="inl">pip install -e .</code> registers a <code class="inl">textgrabber</code>
+    command, and <code class="inl">python -m screengrab</code> works too.
+  </div>
+
+  <h2><span class="num">06</span>Good to know</h2>
+  <div class="cards">
+    <div class="card">
+      <h3>Windows only</h3>
+      <p>Global hotkeys and screen capture are Win32-specific. macOS and Linux are out of scope for now.</p>
+    </div>
+    <div class="card">
+      <h3>Black frames</h3>
+      <p>Hardware-accelerated or DRM-protected windows cannot be captured by GDI. Windows Graphics Capture is on the roadmap.</p>
+    </div>
+    <div class="card">
+      <h3>Text layer only</h3>
+      <p>Line breaks, indentation and tab alignment are preserved. Fonts, weights and colours are not, and merged table cells are lost.</p>
+    </div>
+  </div>
+
+  <footer>
+    <div>
+      <a href="https://github.com/nineone-spirits/textgrabber">Source</a>
+      <a href="https://github.com/nineone-spirits/textgrabber/blob/main/CHANGELOG.md">Changelog</a>
+      <a href="https://github.com/nineone-spirits/textgrabber/issues">Issues</a>
+      <a href="技术方案.html">Design notes</a>
+    </div>
+    <div>MIT © 2026 Jiuyi Jiu · NineOne Spirits（九一的酒）</div>
+  </footer>
+
+</div>
+</body>
+</html>

@@ -4,22 +4,28 @@ updates:
     directory: "/"
     schedule:
       interval: weekly
-    open-pull-requests-limit: 3
+    open-pull-requests-limit: 2
     commit-message:
       prefix: "chore"
     labels:
       - dependencies
-    # 只保护住会直接影响识别结果的大版本，其余交给评审
+    # 大版本可能换模型或接口，需要人工验证识别准确率，不自动提 PR
     ignore:
       - dependency-name: "*"
         update-types: ["version-update:semver-major"]
-        # rapidocr 的大版本可能换模型与接口，需要人工验证准确率
-      - dependency-name: rapidocr
-        update-types: ["version-update:semver-minor"]
 
   - package-ecosystem: github-actions
     directory: "/"
     schedule:
       interval: monthly
+    open-pull-requests-limit: 1
     commit-message:
       prefix: "chore"
+    labels:
+      - dependencies
+    # 只收补丁级更新：Action 的大版本会改输入参数，无人值守升级会直接把 CI 弄红
+    ignore:
+      - dependency-name: "*"
+        update-types:
+          - "version-update:semver-major"
+          - "version-update:semver-minor"

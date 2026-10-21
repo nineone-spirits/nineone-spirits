@@ -10,6 +10,12 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+# 托管 runner 的默认控制台编码是 cp1252，测试脚本 print 中文会直接
+# UnicodeEncodeError（charmap codec can't encode）。统一强制 UTF-8。
+env:
+  PYTHONUTF8: "1"
+  PYTHONIOENCODING: utf-8
+
 jobs:
   test:
     name: 测试 · Python ${{ matrix.python-version }}
